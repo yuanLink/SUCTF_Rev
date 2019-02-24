@@ -21,12 +21,24 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="RevProtect.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadHeader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="WinRev.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RevProtect.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
