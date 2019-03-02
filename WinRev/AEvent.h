@@ -6,7 +6,7 @@
 #include<map>
 
 /*
- *		AkiraEvent
+ *		AEvent
  *
  * A interface Event that to 
  */
@@ -133,7 +133,7 @@ namespace EventHandle{
 		// add event to the map
 		// return the conainer uuid for this AEvent to help
 		// to remove event
-		int AddEventHandler(AEventHandler* akiraEventPtr);
+		int AddEventHandler(AEventHandler* aEventPtr);
 
 		// remove event from the map
 		// return true if remove successfuly
