@@ -24,15 +24,21 @@ define MyDbgPrint(Fmt,...)				\
 #endif
 
 namespace EventHandle{
-
+	class AEventContainer;
+	class AEventSubscriber;
+	class AEventPublisher;
 	class AEvent{
 	public:
-		AEvent(int eventUUID){
+		AEvent(int eventUUID, EVENTTYPE type){
 			eventUUID = -1;
+			typeId = type;
 		}
 		EVENTTYPE GetAEventType(){
 			return typeId;
 		};
+		int GetAEventID() {
+			return eventUUID;
+		}
 		void SetAEventType(EVENTTYPE type){
 			typeId = type;
 		}
@@ -55,9 +61,9 @@ namespace EventHandle{
 			eventHandlerId = -1;
 		}
 
-		AEventHandler(int event_id, EVENTTYPE typeId){
+		AEventHandler(int eventhandler_id, EVENTTYPE typeId){
 			this->typeId = typeId;
-			this->eventHandlerId = event_id;
+			this->eventHandlerId = eventhandler_id;
 		}
 		virtual bool OnEventTrigger(void *Context);
 		/*
@@ -94,7 +100,7 @@ namespace EventHandle{
 		 * @param AEventHandler is an event that include "uuid for event" and "event trigger"
 		 * @return a container uuid, which can help to remove specified event
 		 */
-		int subscriber(AEventContainer*, AEventHandler);
+		static int subscribe(AEventContainer*, AEventHandler*);
 		/*		unsubscriber
 		 *
 		 * This function will unsubscribe the AEvent into the queue,
@@ -103,8 +109,9 @@ namespace EventHandle{
 		 * @param AEventHandler is an event that include "uuid for event" and "event trigger"
 		 * @return a container uuid, which can help to remove specified event
 		 */
-		int unsubscribe(AEventContainer*, AEventHandler);
+		static int unsubscribe(AEventContainer*, AEventHandler);
 	};
+	
 	class AEventPublisher {
 	public:
 		/*		publisher
@@ -115,8 +122,9 @@ namespace EventHandle{
 		 * @param AEventHandler is an event that include "uuid for event" and "event trigger"
 		 * @return the number of the event trigger
 		 */
-		int publish(AEventContainer*, AEvent);
+		static int publish(AEventContainer*, AEvent);
 	};
+
 	class AEventContainer {
 	public:
 		AEventContainer(){

@@ -48,20 +48,20 @@ std::vector<EventHandle::AEventHandler*> *EventHandle::AEventContainer::GetAEven
 	
 }
 // ============== Eventh Subscriber =====================
-int EventHandle::AEventSubscriber::subscriber(AEventContainer* container, AEventHandler eventHandler){
+int EventHandle::AEventSubscriber::subscribe(AEventContainer* container, AEventHandler* ptrEventHandler){
 	
 	if(container == NULL){
 		MyDbgPrint("It's an empty container..\n");
 		return -1;
 	}
-	if(eventHandler.OnEventTrigger == NULL){
-		MyDbgPrint("subscriber with NULL Trigger!\n");
-		return -1;
-	}
-	AEventHandler* ptrEventHandler = new AEventHandler(eventHandler);
+	// AEventHandler* ptrEventHandler = new AEventHandler(eventHandler);
 	return container->AddEventHandler(ptrEventHandler);
 }
 
+int EventHandle::AEventSubscriber::unsubscribe(AEventContainer* container, AEventHandler eventHandler) {
+	// TODO:Finish this api
+	return -1;
+}
 // ============== Eventh Publisher =====================
 int EventHandle::AEventPublisher::publish(AEventContainer* container, AEvent aevent){
 
@@ -72,8 +72,8 @@ int EventHandle::AEventPublisher::publish(AEventContainer* container, AEvent aev
 	int dwTriggerNum = 0;
 	std::vector<AEventHandler*>* tmp = container->GetAEventHandler(aevent);
 	if(tmp != NULL){
-		while(!tmp->empty()){
-			AEventHandler* eachEventHandler = tmp->front();
+		for(int i = 0; i < tmp->size(); i++){
+			AEventHandler* eachEventHandler = (*tmp)[i];
 			if(eachEventHandler == NULL){
 				MyDbgPrint("event handler %x is NULL", eachEventHandler->GetAEventHandlerID());
 				return -1;
