@@ -155,7 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AkiraEvent.h" />
+    <ClInclude Include="AEvent.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="RevProtect.h" />
     <ClInclude Include="stdafx.h" />
@@ -163,7 +163,7 @@
     <ClInclude Include="ThreadHeader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AkiraEvent.cpp" />
+    <ClCompile Include="AEvent.cpp" />
     <ClCompile Include="RevProtect.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

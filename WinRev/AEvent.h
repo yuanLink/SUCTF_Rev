@@ -16,11 +16,13 @@ typedef int EVENTTYPE;
 #ifdef _DEBUG
 #define MyDbgPrint(Fmt,...)				\
 		puts("[EventHandle]");			\
-		printf(Fmt, __VA_ARGS__);
+		printf(Fmt, __VA_ARGS__);		\
+		puts("");
 #else
 define MyDbgPrint(Fmt,...)				\
 		puts("[Release]");				\
-		printf(Fmt, __VA_ARGS__);
+		printf(Fmt, __VA_ARGS__);		\
+		puts("");
 #endif
 
 namespace EventHandle{
@@ -120,9 +122,10 @@ namespace EventHandle{
 		 *
 		 * @param AEventContainer is a container which contain all the AEvent in one queue,
 		 * @param AEventHandler is an event that include "uuid for event" and "event trigger"
+		 * @param Context is argument for trigger
 		 * @return the number of the event trigger
 		 */
-		static int publish(AEventContainer*, AEvent);
+		static int publish(AEventContainer*, AEvent, void* Context);
 	};
 
 	class AEventContainer {

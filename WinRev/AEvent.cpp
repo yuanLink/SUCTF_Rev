@@ -8,7 +8,7 @@ bool EventHandle::AEventHandler::OnEventTrigger(void *Context){
 int EventHandle::AEventContainer::AddEventHandler(AEventHandler* aEventPtr){
 	if(mapEventHandler.find(aEventPtr->GetAEventTypeID()) == mapEventHandler.end()){
 		// now we add new Event
-		MyDbgPrint("add new EventType");
+		MyDbgPrint("add new EventType\n");
 		mapEventHandler[aEventPtr->GetAEventTypeID()] = new std::vector<AEventHandler*>();
 	}
 	mapEventHandler[aEventPtr->GetAEventTypeID()]->push_back(aEventPtr);
@@ -21,20 +21,19 @@ bool EventHandle::AEventContainer::RemoveEventHandler(AEventHandler eventHandler
 	AEventHandler* ptrEventHandler = NULL;
 	eventQueue = this->mapEventHandler[eventHandler.GetAEventTypeID()];
 	if(eventQueue == NULL){
-		MyDbgPrint("the event we want to get is empty");
+		MyDbgPrint("the event we want to get is empty\n");
 	}
 	std::vector<EventHandle::AEventHandler*>::iterator it;
 	for(it = eventQueue->begin(); it != eventQueue->end(); it++){
 		if((*it)->GetAEventHandlerID() == eventHandler.GetAEventHandlerID()){
 			ptrEventHandler = *it;
 			eventQueue->erase(it);
-			MyDbgPrint("event handler %x has been erase", ptrEventHandler->GetAEventHandlerID());
-			delete ptrEventHandler;
-			break;
+			MyDbgPrint("event handler %x has been erase\n", ptrEventHandler->GetAEventHandlerID());
+			return true;
 		}
 	}
 
-	MyDbgPrint("we could not find the eventHandler");
+	MyDbgPrint("we could not find the eventHandler\n");
 	return false;
 }
 
@@ -59,11 +58,13 @@ int EventHandle::AEventSubscriber::subscribe(AEventContainer* container, AEventH
 }
 
 int EventHandle::AEventSubscriber::unsubscribe(AEventContainer* container, AEventHandler eventHandler) {
-	// TODO:Finish this api
-	return -1;
+	if (container == NULL) {
+		MyDbgPrint("It's an empty container...\n")
+	}
+	return container->RemoveEventHandler(eventHandler);
 }
 // ============== Eventh Publisher =====================
-int EventHandle::AEventPublisher::publish(AEventContainer* container, AEvent aevent){
+int EventHandle::AEventPublisher::publish(AEventContainer* container, AEvent aevent, void* Context){
 
 	if(container == NULL){
 		MyDbgPrint("It's an empty container in publish..\n");
@@ -78,7 +79,7 @@ int EventHandle::AEventPublisher::publish(AEventContainer* container, AEvent aev
 				MyDbgPrint("event handler %x is NULL", eachEventHandler->GetAEventHandlerID());
 				return -1;
 			}
-			eachEventHandler->OnEventTrigger(NULL);
+			eachEventHandler->OnEventTrigger(Context);
 		}
 	}
 }

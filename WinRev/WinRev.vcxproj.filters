@@ -30,7 +30,7 @@
     <ClInclude Include="ThreadHeader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="AkiraEvent.h">
+    <ClInclude Include="AEvent.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,10 +44,10 @@
     <ClCompile Include="RevProtect.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="AkiraEvent.cpp">
+    <ClCompile Include="UnitTestcpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="UnitTestcpp.cpp">
+    <ClCompile Include="AEvent.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
