@@ -1,6 +1,8 @@
 #include"RevProtect.h"
 #include"ThreadHeader.h"
-// 1. check thread the SameTebFlags &0x40(if == 1, it is anti-debug)
+
+extern EventHandle::AEventContainer* container;
+
 bool Protector::ProtectorContext::ThreadProtector() {
 	bool bRet = FALSE;
 	PTEB teb = NULL;
@@ -57,6 +59,31 @@ bool Protector::ProtectorContext::ThreadProtector() {
 
 }
 // 2. check the process that has not hash number(like ida.exe ida64.exe so on)
-bool ProcessProtector();
+bool ProcessProtector() {
+	bool bRet = false;
+	EventHandle::AEvent procEvent(1, Protector::PROCESS_CHECK_PASS);
+	PROCESSENTRY32 procEntry = { 0 };
+	procEntry.dwSize = sizeof(PROCESSENTRY32);
+	HANDLE hProcSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hProcSnapshot == INVALID_HANDLE_VALUE) {
+		MyDbgPrint("Create Snap shot failed");
+		return bRet;
+	}
+	BOOL bProcess = Process32First(hProcSnapshot, &procEntry);
+	if (bProcess == FALSE) {
+		MyDbgPrint("Could not get process");
+		return bRet;
+	}
+	while (bProcess) {
+		MyDbgPrint("ProcessID:[%x]:%ls", procEntry.th32ProcessID, procEntry.szExeFile);
+		// TOOD: add md5 compare here
+		bProcess = Process32Next(hProcSnapshot, &procEntry);
+	}
+	bRet = true;
+	// pass process check, we pubish this event
+	// TODO:here we send one part of encode dll object to here
+	EventHandle::AEventPublisher::publish(container, procEvent, NULL);	
+	return bRet;
+}
 // 3. normal: check the IsDebuggerPresent()
 bool DebuggerProtector();
