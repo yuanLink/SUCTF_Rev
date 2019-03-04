@@ -1,11 +1,11 @@
 #include"RevProtect.h"
-#include"ThreadHeader.h"
+// #include"ThreadHeader.h"
 
 extern EventHandle::AEventContainer* container;
 
 bool Protector::ProtectorContext::ThreadProtector() {
 	bool bRet = FALSE;
-	PTEB teb = NULL;
+	// PTEB teb = NULL;
 #ifdef _DEBUG
 	HMODULE hDll = GetModuleHandle(L"ntdll.dll");
 	if (hDll == NULL) {
@@ -59,7 +59,7 @@ bool Protector::ProtectorContext::ThreadProtector() {
 
 }
 // 2. check the process that has not hash number(like ida.exe ida64.exe so on)
-bool ProcessProtector() {
+bool Protector::ProtectorContext::ProcessProtector() {
 	bool bRet = false;
 	EventHandle::AEvent procEvent(1, Protector::PROCESS_CHECK_PASS);
 	PROCESSENTRY32 procEntry = { 0 };
@@ -87,3 +87,10 @@ bool ProcessProtector() {
 }
 // 3. normal: check the IsDebuggerPresent()
 bool DebuggerProtector();
+
+bool ProcessInterace::InitProcessCheckHandler() {
+	proCheckHandler = new Protector::ProcessCheckHandler(PROCESS_START, Protector::PROCESS_CHECK_PASS);
+	int dwRet = EventHandle::AEventSubscriber::subscribe(container, proCheckHandler);
+	
+	return dwRet >= 0;
+}

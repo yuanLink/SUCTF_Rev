@@ -12,6 +12,7 @@ return (PTEB)__readfsdword(0x18);
 return (struct _TEB *)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
 */
 
+
 namespace Protector {
 
 #define PROTECT_EVENT(id)		(0x100000 | id)
@@ -48,7 +49,7 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 	class ProcessCheckHandler :public EventHandle::AEventHandler {
 	public:
 		ProcessCheckHandler(int eventhandler_id, EVENTTYPE typeId) :AEventHandler(eventhandler_id, typeId) {
-
+			// memset(obj_part2, '\0', 120);
 		}
 		// this handler will try to add a new object to 
 		bool OnEventTrigger(void* Context) {
@@ -59,28 +60,23 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 			return true;
 		}
 	private:
-		char obj_part2[] = "Now just a test";
-
+		char obj_part2[120] = "Now just a test";
+					
 	};
 
 }
 
-namespace ProcessInterace {
+class ProcessInterace {
+public:
 	enum HandlerType {
 		PROCESS_START,
 		THREAD_QUERY,
 		LOAD_LIBRARY
 	};
-
+	bool InitProcessCheckHandler();
+private:
 	// all handler put here
-	Protector::ProcessCheckHandler* proCheckHandler = 0;
+	Protector::ProcessCheckHandler* proCheckHandler;
+};
 
-
-	bool InitProcessCheckHandler() {
-		proCheckHandler = new Protector::ProcessCheckHandler(PROCESS_START, Protector::PROCESS_CHECK_PASS);
-		EventHandle::AEventSubscriber::subscribe(container, proCheckHandler);
-
-	}
-}
-
-#endif REV_PROTECt_H
+#endif REV_PROTECT_H
