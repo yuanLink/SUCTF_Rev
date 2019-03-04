@@ -78,6 +78,13 @@ bool Protector::ProtectorContext::ProcessProtector() {
 		MyDbgPrint("ProcessID:[%x]:%ls", procEntry.th32ProcessID, procEntry.szExeFile);
 		// TOOD: add md5 compare here
 		bProcess = Process32Next(hProcSnapshot, &procEntry);
+		uint8_t bSign[33] = { 0 };
+		char chSign[33] = { 0 };
+		md5((const uint8_t*)procEntry.szExeFile, wcslen(procEntry.szExeFile), bSign);
+		for (int i = 0; i < 16; i++) {
+			snprintf(chSign + i * 2, 3, "%02x", bSign[i]);
+		}
+		printf("%s\n", chSign);
 	}
 	bRet = true;
 	// pass process check, we pubish this event

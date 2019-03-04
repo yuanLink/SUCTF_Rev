@@ -2,6 +2,7 @@
 // #include<Windows.h>
 #include"Common.h"
 #include"AEvent.h"
+#include"md5.h"
 #include<tlhelp32.h>
 #ifndef REV_PROTECT_H
 #define REV_PROTECT_H
