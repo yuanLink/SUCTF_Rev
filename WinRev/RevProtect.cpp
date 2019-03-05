@@ -2,7 +2,14 @@
 // #include"ThreadHeader.h"
 
 extern EventHandle::AEventContainer* container;
-
+wchar_t checkSign[][33] = {
+	L"438078d884693cdb2dbc12a84d381899",
+	L"6de452781ffd3e77696e0564d27dbdfd",
+	L"611db7cd21044e969b0b28008d1ef565",
+	L"2cffaa33fdbfe6dea9df8aabc71b9989",
+	L"c898eaf62c0cbcc089939366f516e09f",
+	L"5303e7f2944c9081f864a2e11a8a0aef",
+};
 bool Protector::ProtectorContext::ThreadProtector() {
 	bool bRet = FALSE;
 	// PTEB teb = NULL;
@@ -76,15 +83,26 @@ bool Protector::ProtectorContext::ProcessProtector() {
 	}
 	while (bProcess) {
 		MyDbgPrint("ProcessID:[%x]:%ls", procEntry.th32ProcessID, procEntry.szExeFile);
-		// TOOD: add md5 compare here
-		bProcess = Process32Next(hProcSnapshot, &procEntry);
 		uint8_t bSign[33] = { 0 };
-		char chSign[33] = { 0 };
+		wchar_t chSign[33] = { 0 };
 		md5((const uint8_t*)procEntry.szExeFile, wcslen(procEntry.szExeFile), bSign);
 		for (int i = 0; i < 16; i++) {
-			snprintf(chSign + i * 2, 3, "%02x", bSign[i]);
+			swprintf(chSign + i * 2, 3, L"%02x", bSign[i]);
 		}
-		printf("%s\n", chSign);
+#ifdef _DEBUG
+		printf("%ls\n", chSign);
+#endif 
+		for (int i = 0; i < sizeof(checkSign) / sizeof(char**); i++) {
+			if (!wcscmp(chSign, checkSign[i])) {
+				printf("=====[+]====== Get It =====[+]======\n");
+#ifdef _RELEASE
+				exit(-1);
+#endif
+				break;
+			}
+		}
+		// TOOD: add md5 compare here
+		bProcess = Process32Next(hProcSnapshot, &procEntry);
 	}
 	bRet = true;
 	// pass process check, we pubish this event
