@@ -10,6 +10,24 @@ wchar_t checkSign[][33] = {
 	L"c898eaf62c0cbcc089939366f516e09f",
 	L"5303e7f2944c9081f864a2e11a8a0aef",
 };
+
+bool Protector::ProtectorContext::InitProtector() {
+	bool bRet = false;
+	HMODULE hDll = GetModuleHandle(L"ntdll.dll");
+	if (hDll == NULL) {
+		printf("[ERROR] Get Handle failed!\n");
+		return bRet;
+	}
+	pfnNtCurrentTEB = (PFNNtCurrentTEB)GetProcAddress(hDll, "NtCurrentTeb");
+	pfnNtQueryInformationFile = (PFNNtQueryInformationFile)GetProcAddress(hDll, "NtQueryInformationFile");
+	if (!pfnNtCurrentTEB || !pfnNtQueryInformationFile) {
+		MyDbgPrint("Could not get all the function ptr!\n");
+		return bRet;
+	}
+	bRet = true;
+	return bRet;
+}
+
 bool Protector::ProtectorContext::ThreadProtector() {
 	bool bRet = FALSE;
 	// PTEB teb = NULL;
@@ -19,7 +37,7 @@ bool Protector::ProtectorContext::ThreadProtector() {
 		printf("[ERROR] Get Handle failed!\n");
 		return bRet;
 	}
-	pfnNtCurrentTEB = (PFNNtCurrentTEB)GetProcAddress(hDll, "NtCurrentTeb");
+	/*pfnNtCurrentTEB = (PFNNtCurrentTEB)GetProcAddress(hDll, "NtCurrentTeb");*/
 	if (pfnNtCurrentTEB == NULL) {
 #if defined (_M_AMD64)
 		teb = (struct _TEB *)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
@@ -111,7 +129,27 @@ bool Protector::ProtectorContext::ProcessProtector() {
 	return bRet;
 }
 // 3. normal: check the IsDebuggerPresent()
-bool DebuggerProtector();
+bool Protector::ProtectorContext::DebuggerProtector() {
+	bool bDebug = true;
+	do {
+		if (IsDebuggerPresent()) {
+			break;
+		}
+		if (CheckRemoteDebuggerPresent(GetCurrentProcess(), (PBOOL)&bDebug)) {
+			break;
+		}
+		if (pfnNtQueryInformationFile) {
+			int debugPort = 0;
+		}
+	} while (false);
+	if (bDebug) {
+#ifdef _DEBUG
+		MyDbgPrint("Deteched!\n");
+#else
+		exit(-1);
+#endif
+	}
+}
 
 bool ProcessInterace::InitProcessCheckHandler() {
 	proCheckHandler = new Protector::ProcessCheckHandler(PROCESS_START, Protector::PROCESS_CHECK_PASS);

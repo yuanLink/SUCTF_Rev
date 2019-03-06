@@ -24,10 +24,18 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 	 * Define some export function name
 	 */
 	typedef void* (*PFNNtCurrentTEB)();
+	typedef NTSTATUS (*PFNNtQueryInformationFile)(
+		HANDLE          FileHandle,
+		VOID*			IoStatusBlock,
+		PVOID           FileInformation,
+		ULONG           Length,
+		int				FileInformationClass
+	);
 	class ProtectorContext {
 	public:
 		ProtectorContext() {
 			pfnNtCurrentTEB = nullptr;
+			pfnNtQueryInformationFile = nullptr;
 		}
 		/* check the protector initialize */
 		bool InitProtector();
@@ -43,7 +51,7 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 		// 4. TODO:Exception to check debug
 	private:
 		PFNNtCurrentTEB pfnNtCurrentTEB;
-		
+		PFNNtQueryInformationFile pfnNtQueryInformationFile;
 		
 	};
 
