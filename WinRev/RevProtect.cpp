@@ -42,6 +42,9 @@ void CheckGlobalFlagsClearInProcess()
 		MyDbgPrint("Stop debugging program\n");
 		// exit(-1);
 	}
+	else {
+		printf("pAAASS\n");
+	}
 }
 void CheckGlobalFlagsClearInFile()
 {
@@ -131,14 +134,14 @@ bool Protector::ProtectorContext::ThreadProtector() {
 	HMODULE hAntiDbg = LoadLibrary(wszPath.c_str());
 	
 	// here, we stop the event deliver
-#ifdef _WIN32
-	__asm {
-		pushad
-		mov eax,dword ptr fs:[0x18]
-		mov byte ptr[eax+0xFCA],0x80
-		popad
-	}
-#endif 
+//#ifdef _WIN32
+//	__asm {
+//		pushad
+//		mov eax,dword ptr fs:[0x18]
+//		mov byte ptr[eax+0xFCA],0x80
+//		popad
+//	}
+//#endif 
 	/*if (teb == NULL) {
 		teb = (PTEB)pfnNtCurrentTEB();
 	}
@@ -251,6 +254,7 @@ bool Protector::ProtectorContext::DebuggerProtector() {
 		exit(-1);
 #endif
 	}
+	return bDebug;
 }
 
 bool ProcessInterace::InitProcessCheckHandler() {
