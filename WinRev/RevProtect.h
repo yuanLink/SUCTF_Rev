@@ -24,18 +24,18 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 	 * Define some export function name
 	 */
 	typedef void* (*PFNNtCurrentTEB)();
-	typedef NTSTATUS (*PFNNtQueryInformationFile)(
-		HANDLE          FileHandle,
-		VOID*			IoStatusBlock,
-		PVOID           FileInformation,
-		ULONG           Length,
-		int				FileInformationClass
+	typedef NTSTATUS (*PFNNtQueryInformationProcess)(
+		IN HANDLE           ProcessHandle,
+		IN int				ProcessInformationClass,
+		OUT PVOID           ProcessInformation,
+		IN ULONG            ProcessInformationLength,
+		OUT PULONG          ReturnLength
 	);
 	class ProtectorContext {
 	public:
 		ProtectorContext() {
 			pfnNtCurrentTEB = nullptr;
-			pfnNtQueryInformationFile = nullptr;
+			pfnNtQueryInformationProcess = nullptr;
 		}
 		/* check the protector initialize */
 		bool InitProtector();
@@ -51,8 +51,47 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 		// 4. TODO:Exception to check debug
 	private:
 		PFNNtCurrentTEB pfnNtCurrentTEB;
-		PFNNtQueryInformationFile pfnNtQueryInformationFile;
-		
+		PFNNtQueryInformationProcess pfnNtQueryInformationProcess;
+		void* GetPEB() {
+#ifdef _WIN64
+			UINT64 peb = __readgsqword(0x60);
+#else
+			UINT32 peb = __readgsdword(0x30);
+#endif
+			return (void*)peb;
+		}
+
+		// Get PEB for WOW64 Process
+		PVOID GetPEB64()
+		{
+			PVOID pPeb = 0;
+#ifndef _WIN64
+			// 1. There are two copies of PEB - PEB64 and PEB32 in WOW64 process
+			// 2. PEB64 follows after PEB32
+			// 3. This is true for versions lower than Windows 8, else __readfsdword returns address of real PEB64
+			if (IsWin8OrHigher())
+			{
+				BOOL isWow64 = FALSE;
+				typedef BOOL(WINAPI *pfnIsWow64Process)(HANDLE hProcess, PBOOL isWow64);
+				pfnIsWow64Process fnIsWow64Process = (pfnIsWow64Process)
+					GetProcAddress(GetModuleHandleA("Kernel32.dll"), "IsWow64Process");
+				if (fnIsWow64Process(GetCurrentProcess(), &isWow64))
+				{
+					if (isWow64)
+					{
+						pPeb = (PVOID)__readfsdword(0x0C * sizeof(PVOID));
+						pPeb = (PVOID)((PBYTE)pPeb + 0x1000);
+					}
+				}
+			}
+#endif
+			return pPeb;
+		}
+		bool DebuggerCheckWithPEB();
+		const int FLG_HEAP_ENABLE_TAIL_CHECK = 0x10;
+		const int FLG_HEAP_ENABLE_FREE_CHECK = 0x20;
+		const int FLG_HEAP_VALIDATE_PARAMETERS = 0x40;
+		const int NT_GLOBAL_FLAG_DEBUGGED = FLG_HEAP_VALIDATE_PARAMETERS | FLG_HEAP_ENABLE_FREE_CHECK | FLG_HEAP_ENABLE_TAIL_CHECK;
 	};
 
 	class ProcessCheckHandler :public EventHandle::AEventHandler {

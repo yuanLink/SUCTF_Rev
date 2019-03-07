@@ -63,6 +63,9 @@ namespace EventHandle{
 			eventHandlerId = -1;
 		}
 
+		virtual ~AEventHandler() {
+
+		};
 		AEventHandler(int eventhandler_id, EVENTTYPE typeId){
 			this->typeId = typeId;
 			this->eventHandlerId = eventhandler_id;
