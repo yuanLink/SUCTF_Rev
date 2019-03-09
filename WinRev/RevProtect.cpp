@@ -6,9 +6,10 @@ wchar_t checkSign[][33] = {
 	L"438078d884693cdb2dbc12a84d381899",
 	L"6de452781ffd3e77696e0564d27dbdfd",
 	L"611db7cd21044e969b0b28008d1ef565",//??
-	L"2cffaa33fdbfe6dea9df8aabc71b9989",
+	L"2cffaa33fdbfe6dea9df8aabc71b9989",//ida64.exe
 	L"c898eaf62c0cbcc089939366f516e09f",
 	L"5303e7f2944c9081f864a2e11a8a0aef",
+	L"679542632bddb4cf47ed0a61f1f83ee4"// dbgx_shell.exe(windbg_preview)
 };
 
 PIMAGE_NT_HEADERS GetImageNtHeaders(PBYTE pImageBase)
