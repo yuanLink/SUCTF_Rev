@@ -5,7 +5,7 @@ extern EventHandle::AEventContainer* container;
 wchar_t checkSign[][33] = {
 	L"438078d884693cdb2dbc12a84d381899",
 	L"6de452781ffd3e77696e0564d27dbdfd",
-	L"611db7cd21044e969b0b28008d1ef565",
+	L"611db7cd21044e969b0b28008d1ef565",//??
 	L"2cffaa33fdbfe6dea9df8aabc71b9989",
 	L"c898eaf62c0cbcc089939366f516e09f",
 	L"5303e7f2944c9081f864a2e11a8a0aef",
@@ -221,19 +221,20 @@ bool Protector::ProtectorContext::DebuggerCheckWithPEB() {
 	DWORD NtGlobalFlag = *(PDWORD)((PBYTE)pPeb + offsetNtGlobalFlag);
 	if (NtGlobalFlag & NT_GLOBAL_FLAG_DEBUGGED)
 	{
-		MyDbgPrint("Debugging program!\n");
-		exit(-1);
+		MyDbgPrint("PEB Debugging program!\n");
+		// exit(-1);
 	}
+	return true;
 }
 // 3. normal: check the IsDebuggerPresent()
 bool Protector::ProtectorContext::DebuggerProtector() {
-	bool bDebug = true;
+	BOOL bDebug = true;
 	do {
 		if (IsDebuggerPresent()) {
-			break;
+			// break;
 		}
 		if (CheckRemoteDebuggerPresent(GetCurrentProcess(), (PBOOL)&bDebug)) {
-			break;
+			// break;
 		}
 		// make sure this function can work
 		if (pfnNtQueryInformationProcess) {
@@ -245,7 +246,7 @@ bool Protector::ProtectorContext::DebuggerProtector() {
 			bDebug = hDbgObj != NULL;
 		}
 		// TODO:add more debug check method
-		bDebug = DebuggerCheckWithPEB();
+		 bDebug = DebuggerCheckWithPEB();
 	} while (false);
 	if (bDebug) {
 #ifdef _DEBUG
