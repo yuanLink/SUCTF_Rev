@@ -78,7 +78,7 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 	private:
 		PFNNtCurrentTEB pfnNtCurrentTEB;
 		PFNNtQueryInformationProcess pfnNtQueryInformationProcess;
-		PFNZwQueryInformationThread pfnZwQueryInnformationThread;
+		PFNZwQueryInformationThread pfnZwQueryInformationThread;
 		void* GetPEB() {
 #ifdef _WIN64
 			UINT64 peb = __readgsqword(0x60);
