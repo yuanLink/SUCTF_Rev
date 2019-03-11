@@ -31,6 +31,32 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 		IN ULONG            ProcessInformationLength,
 		OUT PULONG          ReturnLength
 	);
+	typedef enum THREADINFOCLASS {
+
+		ThreadBasicInformation, // 0
+		ThreadTimes, // 1
+		ThreadPriority, // 2 
+		ThreadBasePriority, // 3 
+		ThreadAffinityMask, // 4 
+		ThreadImpersonationToken, // 5 
+		ThreadDescriptorTableEntry, // 6
+		ThreadEnableAlignmentFaultFixup, // 7 
+		ThreadEventPair, // 8 
+		ThreadQuerySetWin32StartAddress, // 9
+		ThreadZeroTlsCell, // 10 
+		ThreadPerformanceCount, // 11
+		ThreadAmILastThread, // 12 
+		ThreadIdealProcessor, // 13 
+		ThreadPriorityBoost, // 14
+		ThreadSetTlsArrayAddress, // 15 
+		ThreadIsIoPending, // 16
+		ThreadHideFromDebugger // 17 
+	} THREADINFOCLASS;
+	typedef NTSTATUS(WINAPI *PFNZwQueryInformationThread)(
+		HANDLE ThreadHandle,
+		THREADINFOCLASS  ThreadInformationClass,
+		PVOID ThreadInformation,
+		ULONG ThreadInformationLength);
 	class ProtectorContext {
 	public:
 		ProtectorContext() {
@@ -52,6 +78,7 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 	private:
 		PFNNtCurrentTEB pfnNtCurrentTEB;
 		PFNNtQueryInformationProcess pfnNtQueryInformationProcess;
+		PFNZwQueryInformationThread pfnZwQueryInnformationThread;
 		void* GetPEB() {
 #ifdef _WIN64
 			UINT64 peb = __readgsqword(0x60);

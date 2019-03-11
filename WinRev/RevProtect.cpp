@@ -96,7 +96,10 @@ bool Protector::ProtectorContext::InitProtector() {
 	}
 	pfnNtCurrentTEB = (PFNNtCurrentTEB)GetProcAddress(hDll, "NtCurrentTeb");
 	pfnNtQueryInformationProcess = (PFNNtQueryInformationProcess)GetProcAddress(hDll, "NtQueryInformationProcess");
-	if (!pfnNtCurrentTEB || !pfnNtQueryInformationProcess) {
+	pfnZwQueryInnformationThread = (PFNZwQueryInformationThread)GetProcAddress(hDll, "ZwQueryInnformationThread");
+	if (!pfnNtCurrentTEB || 
+		!pfnNtQueryInformationProcess ||
+		!pfnZwQueryInnformationThread) {
 		MyDbgPrint("Could not get all the function ptr!\n");
 		return bRet;
 	}
@@ -231,6 +234,9 @@ bool Protector::ProtectorContext::DebuggerCheckWithPEB() {
 bool Protector::ProtectorContext::DebuggerProtector() {
 	BOOL bDebug = true;
 	do {
+		if (pfnZwQueryInnformationThread) {
+			pfnZwQueryInnformationThread(GetCurrentThread(), ThreadHideFromDebugger, NULL, 0);
+		}
 		if (IsDebuggerPresent()) {
 			// break;
 		}
