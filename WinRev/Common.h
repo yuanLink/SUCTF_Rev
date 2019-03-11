@@ -12,6 +12,7 @@
  * the real object
  */
 #define CHECK_PASS L"ThreadCheckPass"
+#define SHARE_MEMORY L"Share_Memory"
 #include<stdio.h>
 #include<Windows.h>
 #include<string>
