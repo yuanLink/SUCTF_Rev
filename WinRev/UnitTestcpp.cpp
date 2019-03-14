@@ -1,4 +1,5 @@
 #include"AEvent.h"
+#include"Common.h"
 #include<iostream>
 #include<cstdlib>
 
@@ -191,5 +192,40 @@ bool UnitTestForTwoDiffAEvent() {
 void UnitTestForAEvent() {
 	if (UnitTestForTwoAEvent()&& UnitTestForTwoDiffAEvent()) {
 		printf("[UnitTest] Pass\n");
+	}
+}
+
+bool UnitTestForLoadDLL() {
+	HANDLE hShareMem = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, g_dwSize, SHARE_MEMORY);
+	if (hShareMem == NULL) {
+		printf("[UnitTestForLoadDLL] create file mapping failed with %x!\n", GetLastError());
+		return false;
+	}
+	PVOID buffer = MapViewOfFile(hShareMem, FILE_MAP_ALL_ACCESS, 0, 0, g_dwSize);
+	if (buffer == NULL) {
+		printf("[UnitTestForLoadDLL] map file failed with %x\n", GetLastError());
+		return false;
+	}
+	memcpy(buffer, "UnitTestForLoadDLL\n", 20);
+	// CloseHandle(hShareMem);
+	HANDLE hEvent = CreateEvent(NULL, FALSE, TRUE, DLL_INPUT);
+	if (hEvent == INVALID_HANDLE_VALUE) {
+		printf("[UnitTestForLoadDLL] event failed with %x\n", GetLastError());
+		return false;
+	}
+	HANDLE hDll = LoadLibrary(L"..\\x64\\Debug\\RevDLL.dll");
+	if (hDll == INVALID_HANDLE_VALUE) {
+		printf("[UnitTestForLoadDLL] Load Library failed!\n");
+	}
+	CloseHandle(hEvent);
+	CloseHandle(hShareMem);
+	return true;
+}
+void UnitTestForDLL() {
+	if (UnitTestForLoadDLL()) {
+		printf("Library Unit Test Pass!\n");
+	}
+	else {
+		printf("Library Unit Test Failed\n");
 	}
 }
