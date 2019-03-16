@@ -1,5 +1,6 @@
 #include"AEvent.h"
 #include"Common.h"
+#include"LoadDLL.h"
 #include<iostream>
 #include<cstdlib>
 
@@ -220,13 +221,40 @@ bool UnitTestForLoadDLL() {
 		printf("[UnitTestForLoadDLL] event failed with %x\n", GetLastError());
 		return false;
 	}
-	HANDLE hDll = LoadLibrary(L"..\\x64\\Debug\\RevDLL.dll");
-	if (hDll == INVALID_HANDLE_VALUE) {
-		printf("[UnitTestForLoadDLL] Load Library failed!\n");
+	// HANDLE hDll = NULL;
+	// hDll = LoadLibrary(L"..\\x64\\Debug\\RevDLL.dll");
+	HANDLE hFile = CreateFile(L"..\\x64\\Debug\\RevDLL.dll", GENERIC_READ,
+		FILE_SHARE_READ, NULL, OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		printf("[UnitTestForLoadDLL] Create file error!\n");
+		return false;
 	}
+	int dwDLLSize = 0;
+	dwDLLSize = GetFileSize(hFile, NULL);
+	char* bufFile = (char*)malloc(dwDLLSize);
+	ZeroMemory(bufFile, dwDLLSize);
+	ReadFile(hFile, bufFile, dwDLLSize, NULL, NULL);
+	// check the magic number
+	LOAD_DLL_INFO *hDLL = new LOAD_DLL_INFO;
+	if (bufFile[0] == 'M' && bufFile[1] == 'Z') {
+		// try to read file from memory
+		DWORD res = LoadDLLFromMemory(bufFile, dwDLLSize, NULL, hDLL);
+		if (res != ELoadDLLResult_OK) {
+			printf("[UnitTestForLoadDLL] Load DLL From memory failed!\n");
+			delete hDLL;
+			return false;
+		}
+	}
+	/*if (hDll == INVALID_HANDLE_VALUE) {
+		printf("[UnitTestForLoadDLL] Load Library failed!\n");
+	}*/
 	CloseHandle(hEvent);
 	CloseHandle(hShareMem);
 	return true;
+}
+void Test_DLL_Load_Library_CPP()
+{
 }
 void UnitTestForDLL() {
 	if (UnitTestForLoadDLL()) {
