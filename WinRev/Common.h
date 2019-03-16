@@ -12,8 +12,8 @@
  * the real object
  */
 #define CHECK_PASS L"ThreadCheckPass"
-#define SHARE_MEMORY L"Share_Memory"
-#define DLL_INPUT L"Global\\DLLInput"
+#define SHARE_MEMORY L"ShareMemory"
+#define DLL_INPUT L"DLLInput"
 const int g_dwSize = 0x8000;
 #include<stdio.h>
 #include<Windows.h>
