@@ -196,17 +196,24 @@ void UnitTestForAEvent() {
 }
 
 bool UnitTestForLoadDLL() {
-	HANDLE hShareMem = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, g_dwSize, SHARE_MEMORY);
+	HANDLE hShareMem = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, g_dwMemSize, SHARE_MEMORY);
 	if (hShareMem == NULL) {
 		printf("[UnitTestForLoadDLL] create file mapping failed with %x!\n", GetLastError());
 		return false;
 	}
-	PVOID buffer = MapViewOfFile(hShareMem, FILE_MAP_ALL_ACCESS, 0, 0, g_dwSize);
+	PVOID buffer = MapViewOfFile(hShareMem, FILE_MAP_ALL_ACCESS, 0, 0, g_dwMemSize);
 	if (buffer == NULL) {
 		printf("[UnitTestForLoadDLL] map file failed with %x\n", GetLastError());
 		return false;
 	}
-	memcpy(buffer, "UnitTestForLoadDLL\n", 20);
+	memset(buffer, '\0', g_dwMemSize);
+	struct AES_ctx ctx;
+	char key[] = "Ak13aK3y";
+	AES_init_ctx(&ctx, (const uint8_t*)key);
+	char test_buffer[] = "UnitTestsForLoadDLL";
+	AES_ECB_encrypt(&ctx, (uint8_t*)test_buffer);
+
+	memcpy(buffer, test_buffer, 20);
 	// CloseHandle(hShareMem);
 	HANDLE hEvent = CreateEvent(NULL, FALSE, TRUE, DLL_INPUT);
 	if (hEvent == INVALID_HANDLE_VALUE) {

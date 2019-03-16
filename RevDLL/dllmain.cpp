@@ -1,15 +1,23 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "stdafx.h"
 #include"../WinRev/Common.h"
+// #include"../WinRev/aes.h"
 
 void DecMessage(char key[], char answer[], char buffer[]) {
 	// TODO: use DES to decrypt this message
+	struct AES_ctx ctx;
+	AES_init_ctx(&ctx, (const uint8_t*)key);
+	memcpy(answer, buffer, g_dwBufferSize);
+	AES_ECB_decrypt(&ctx, (uint8_t*)answer);
 	// and final it will get a key with length 18
+#ifdef _DEBUG
+	printf("decryption content is %s", answer);
+#endif
 }
 bool AttachProcess() {
-	char input[18] = { 0 };
+	char input[g_dwBufferSize] = { 0 };
 	puts("Emmm? you now the answer?");
-	scanf("%17s", input);
+	scanf("%21s", input);
 	// here we write the buffer to share memory, and wen send the 
 	// really event to the main thread to make main thread
 	// we wait main thread to
@@ -26,23 +34,20 @@ bool AttachProcess() {
 		printf("Create File failed with ERROR Code %x!\n", GetLastError());
 		return false;
 	}
-	void* buffer = MapViewOfFile(hSharemem, FILE_MAP_READ, 0, 0, g_dwSize);
+	void* buffer = MapViewOfFile(hSharemem, FILE_MAP_READ, 0, 0, g_dwMemSize);
 	if (buffer == NULL) {
 		printf("Map failed with ERROR Code %x\n", GetLastError());
 		CloseHandle(hSharemem);
 		return false;
 	}
 	CloseHandle(hSharemem);
-	char* ans_buffer = (char*)malloc(g_dwSize);
-	memset(ans_buffer, '\0', g_dwSize);
-	memcpy(ans_buffer, buffer, g_dwSize);
+	char* ans_buffer = (char*)malloc(g_dwMemSize);
+	memset(ans_buffer, '\0', g_dwMemSize);
+	memcpy(ans_buffer, buffer, g_dwMemSize);
 	// now finish, we wait for main thread finish 
 	// here we use DES to decrypt the solution
-#ifdef _DEBUG
-	printf("ans_buffer is %s", ans_buffer);
-#endif
 	char key[] = "Ak13aK3y";
-	char answer[18] = { 0 };
+	char answer[g_dwBufferSize+1] = { 0 };
 	DecMessage(key, answer, ans_buffer);
 	if (!strcmp(answer, input)) {
 		printf("Get finally answer!\n");
