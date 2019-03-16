@@ -19,7 +19,7 @@ typedef int EVENTTYPE;
 		printf(Fmt, __VA_ARGS__);		\
 		puts("");
 #else
-define MyDbgPrint(Fmt,...)				\
+#define MyDbgPrint(Fmt,...)				\
 		puts("[Release]");				\
 		printf(Fmt, __VA_ARGS__);		\
 		puts("");
