@@ -159,6 +159,7 @@
     <ClInclude Include="AEvent.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="LoadDLL.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="RevProtect.h" />
     <ClInclude Include="stdafx.h" />
@@ -168,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="aes.cpp" />
     <ClCompile Include="AEvent.cpp" />
+    <ClCompile Include="LoadDLL.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="RevProtect.cpp" />
     <ClCompile Include="stdafx.cpp">
