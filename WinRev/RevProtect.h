@@ -20,6 +20,8 @@ namespace Protector {
 
 const int PROCESS_CHECK_PASS = PROTECT_EVENT(0x1);
 const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
+const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
+
 	/*!
 	 * Define some export function name
 	 */
@@ -135,8 +137,23 @@ const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
 			return true;
 		}
 	private:
-		char obj_part2[120] = "Now just a test";
+		char obj_part2[120] = "Now just a test2";
 					
+	};
+
+	class PasswordCheckHandler :public EventHandle::AEventHandler {
+	public:
+		PasswordCheckHandler(int eventhandler_id, EVENTTYPE typeId) :AEventHandler(eventhandler_id, typeId) {
+			// memset()
+		}
+		bool OnEventTrigger(void *Context) {
+			MyDbgPrint(obj_part1);
+			// TODO:use xor to decode this part
+			// and add to one global object
+			return true;
+		}
+	private:
+		char obj_part1[125] = "Now just a test1";
 	};
 
 }
@@ -146,12 +163,14 @@ public:
 	enum HandlerType {
 		PROCESS_START,
 		THREAD_QUERY,
-		LOAD_LIBRARY
+		LOAD_LIBRARY,
+		PASSWORD_CHECK
 	};
 	bool InitProcessCheckHandler();
 private:
 	// all handler put here
 	Protector::ProcessCheckHandler* proCheckHandler;
+	Protector::PasswordCheckHandler* passCheckHandler;
 };
 
 #endif REV_PROTECT_H

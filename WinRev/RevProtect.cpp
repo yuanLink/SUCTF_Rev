@@ -267,7 +267,9 @@ bool Protector::ProtectorContext::DebuggerProtector() {
 
 bool ProcessInterace::InitProcessCheckHandler() {
 	proCheckHandler = new Protector::ProcessCheckHandler(PROCESS_START, Protector::PROCESS_CHECK_PASS);
+	passCheckHandler = new Protector::PasswordCheckHandler(PASSWORD_CHECK, Protector::PASSWORD_CHECK_PASS);
 	int dwRet = EventHandle::AEventSubscriber::subscribe(container, proCheckHandler);
+	dwRet = EventHandle::AEventSubscriber::subscribe(container, passCheckHandler);
 	
 	return dwRet >= 0;
 }
