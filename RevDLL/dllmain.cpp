@@ -4,20 +4,15 @@
 // #include"../WinRev/aes.h"
 
 void DecMessage(char key[], char answer[], char buffer[]) {
-	// TODO: use DES to decrypt this message
 	struct AES_ctx ctx;
 	AES_init_ctx(&ctx, (const uint8_t*)key);
 	memcpy(answer, buffer, g_dwBufferSize);
 	AES_ECB_decrypt(&ctx, (uint8_t*)answer);
-	// and final it will get a key with length 18
-#ifdef _DEBUG
-	printf("decryption content is %s", answer);
-#endif
 }
 bool AttachProcess() {
-	char input[g_dwBufferSize] = { 0 };
-	puts("Emmm? you now the answer?");
-	scanf("%21s", input);
+	char input[g_dwBufferSize+1] = { 0 };
+	puts("Now check the sign:");
+	scanf("%25s", input);
 	// here we write the buffer to share memory, and wen send the 
 	// really event to the main thread to make main thread
 	// we wait main thread to
@@ -57,11 +52,7 @@ bool AttachProcess() {
 	}
 
 	// here we will finish all the process
-#ifdef _DEBUG
 	return true;
-#else
-	exit(0);
-#endif
 }
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
