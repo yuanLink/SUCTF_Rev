@@ -13,7 +13,8 @@ return (PTEB)__readfsdword(0x18);
 return (struct _TEB *)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
 */
 
-
+extern int g_dwOneOffset;
+extern char DLL_Content[];
 namespace Protector {
 
 #define PROTECT_EVENT(id)		(0x100000 | id)
@@ -67,16 +68,14 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		}
 		/* check the protector initialize */
 		bool InitProtector();
-		// listen to the event
-		bool ListenCheckEvent();
-
 		// 1. check thread the SameTebFlags &0x40(if == 1, it is anti-debug)
 		bool ThreadProtector();
 		// 2. check the process that has not hash number(like ida.exe ida64.exe so on)
 		bool ProcessProtector();
 		// 3. normal: check the IsDebuggerPresent()
-		bool DebuggerProtector();
-		// 4. TODO:Exception to check debug
+		bool DebuggerProtector(void*);
+		// 3.5 Begin thread
+		bool StartDbgProtectorThread();
 	private:
 		PFNNtCurrentTEB pfnNtCurrentTEB;
 		PFNNtQueryInformationProcess pfnNtQueryInformationProcess;
@@ -116,11 +115,11 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 //#endif
 //			return pPeb;
 //		}
-		bool DebuggerCheckWithPEB();
-		const int FLG_HEAP_ENABLE_TAIL_CHECK = 0x10;
-		const int FLG_HEAP_ENABLE_FREE_CHECK = 0x20;
-		const int FLG_HEAP_VALIDATE_PARAMETERS = 0x40;
-		const int NT_GLOBAL_FLAG_DEBUGGED = FLG_HEAP_VALIDATE_PARAMETERS | FLG_HEAP_ENABLE_FREE_CHECK | FLG_HEAP_ENABLE_TAIL_CHECK;
+		static bool DebuggerCheckWithPEB();
+		#define FLG_HEAP_ENABLE_TAIL_CHECK 0x10
+		#define FLG_HEAP_ENABLE_FREE_CHECK 0x20
+		#define FLG_HEAP_VALIDATE_PARAMETERS 0x40
+		#define NT_GLOBAL_FLAG_DEBUGGED  FLG_HEAP_VALIDATE_PARAMETERS | FLG_HEAP_ENABLE_FREE_CHECK | FLG_HEAP_ENABLE_TAIL_CHECK
 	};
 
 	class ProcessCheckHandler :public EventHandle::AEventHandler {
@@ -147,9 +146,13 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 			// memset()
 		}
 		bool OnEventTrigger(void *Context) {
+			char* passwd = (char*)Context;
 			MyDbgPrint(obj_part1);
-			// TODO:use xor to decode this part
-			// and add to one global object
+			int length = strlen(passwd);
+			MyDbgPrint("[DecryptPartOne] Decrypt with key %s", passwd);
+			for (int i = 0; i < g_dwOneOffset; i++) {
+				DLL_Content[i] ^= passwd[i % length];
+			}
 			return true;
 		}
 	private:

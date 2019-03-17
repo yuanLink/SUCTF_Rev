@@ -1,4 +1,5 @@
 #include"RevProtect.h"
+#include<process.h>
 // #include"ThreadHeader.h"
 
 extern EventHandle::AEventContainer* container;
@@ -231,7 +232,7 @@ bool Protector::ProtectorContext::DebuggerCheckWithPEB() {
 	return true;
 }
 // 3. normal: check the IsDebuggerPresent()
-bool Protector::ProtectorContext::DebuggerProtector() {
+bool Protector::ProtectorContext::DebuggerProtector(void*) {
 	BOOL bDebug = true;
 	do {
 		if (pfnZwQueryInformationThread) {
@@ -264,7 +265,6 @@ bool Protector::ProtectorContext::DebuggerProtector() {
 	}
 	return bDebug;
 }
-
 bool ProcessInterace::InitProcessCheckHandler() {
 	proCheckHandler = new Protector::ProcessCheckHandler(PROCESS_START, Protector::PROCESS_CHECK_PASS);
 	passCheckHandler = new Protector::PasswordCheckHandler(PASSWORD_CHECK, Protector::PASSWORD_CHECK_PASS);
