@@ -88,6 +88,10 @@ void CheckGlobalFlagsClearInFile()
 			CloseHandle(hExecutable);
 	}
 }
+
+bool DecryptThirdPart() {
+
+}
 bool Protector::ProtectorContext::InitProtector() {
 	bool bRet = false;
 	HMODULE hDll = GetModuleHandle(L"ntdll.dll");
@@ -98,9 +102,11 @@ bool Protector::ProtectorContext::InitProtector() {
 	pfnNtCurrentTEB = (PFNNtCurrentTEB)GetProcAddress(hDll, "NtCurrentTeb");
 	pfnNtQueryInformationProcess = (PFNNtQueryInformationProcess)GetProcAddress(hDll, "NtQueryInformationProcess");
 	pfnZwQueryInformationThread = (PFNZwQueryInformationThread)GetProcAddress(hDll, "ZwQueryInformationThread");
+	pfnNtQueueApcThread = (NTSTATUS(NTAPI *)(HANDLE, PVOID, PVOID, PVOID, ULONG)) GetProcAddress(hDll, "NtQueueApcThread");
 	if (!pfnNtCurrentTEB || 
 		!pfnNtQueryInformationProcess ||
-		!pfnZwQueryInformationThread) {
+		!pfnZwQueryInformationThread ||
+		!pfnNtQueueApcThread) {
 		MyDbgPrint("Could not get all the function ptr!\n");
 		return bRet;
 	}
@@ -207,8 +213,8 @@ bool Protector::ProtectorContext::ProcessProtector() {
 	}
 	bRet = true;
 	// pass process check, we pubish this event
-	// TODO:here we send one part of encode dll object to here
-	EventHandle::AEventPublisher::publish(container, procEvent, NULL);	
+	int dwMagic = 0x6a;
+	EventHandle::AEventPublisher::publish(container, procEvent, &dwMagic);	
 	return bRet;
 }
 

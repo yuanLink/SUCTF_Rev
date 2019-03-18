@@ -11,6 +11,9 @@
  * And this event will used to trigger to APC initialize ,which will try to initialize
  * the real object
  */
+
+// ======= TODO: this global object we use MACRO or function to encrypt, and we decrypt
+// them when we really need =============
 #define CHECK_PASS L"ThreadCheckPass"
 #define SHARE_MEMORY L"ShareMemory"
 #define DLL_INPUT L"DLLInput"

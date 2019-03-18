@@ -60,6 +60,13 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		THREADINFOCLASS  ThreadInformationClass,
 		PVOID ThreadInformation,
 		ULONG ThreadInformationLength);
+	typedef NTSTATUS(NTAPI *PFNNtQueueApcThread)(
+		_In_ HANDLE ThreadHandle,
+		_In_ PVOID ApcRoutine,
+		_In_ PVOID ApcRoutineContext OPTIONAL,
+		_In_ PVOID ApcStatusBlock OPTIONAL,
+		_In_ ULONG ApcReserved OPTIONAL
+		);
 	class ProtectorContext {
 	public:
 		ProtectorContext() {
@@ -80,6 +87,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		PFNNtCurrentTEB pfnNtCurrentTEB;
 		PFNNtQueryInformationProcess pfnNtQueryInformationProcess;
 		PFNZwQueryInformationThread pfnZwQueryInformationThread;
+		PFNNtQueueApcThread pfnNtQueueApcThread;
 		void* GetPEB() {
 #ifdef _WIN64
 			UINT64 peb = __readgsqword(0x60);
@@ -130,9 +138,13 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		// this handler will try to add a new object to 
 		bool OnEventTrigger(void* Context) {
 			MyDbgPrint(obj_part2);
-			// TODO:we add a des here to decryption the obj
-			// and write the object to the context
-			// context may be the dll obj or a struct, TBD
+			int magic = *(int*)Context;
+			magic ^= 0x33;// really magic is 0x59
+			for (int i = g_dwOneOffset; i < g_dwTwoOffset; i++) {
+				// TODO: change to another encryption
+				// like using the add/minuse
+				DLL_Content[i] ^= magic;
+			}
 			return true;
 		}
 	private:
@@ -158,7 +170,6 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 	private:
 		char obj_part1[125] = "Now just a test1";
 	};
-
 }
 
 class ProcessInterace {
