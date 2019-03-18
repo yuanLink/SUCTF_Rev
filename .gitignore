@@ -5,7 +5,8 @@
 
 # My modified
 /Win32/
-*.vcxproj
+# *.vcxproj
+WinRev/DLLHeader.h
 
 # User-specific files
 *.rsuser
