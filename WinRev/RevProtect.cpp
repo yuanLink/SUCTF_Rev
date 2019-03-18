@@ -217,6 +217,14 @@ bool Protector::ProtectorContext::DebuggerProtector() {
 	}
 	return bDebug;
 }
+
+bool Protector::ProtectorContext::QueueAPCFunc(APCInsertFunc func) {
+	if (pfnNtQueueApcThread) {
+		HANDLE hThread = GetCurrentThread();
+		pfnNtQueueApcThread(hThread, &func, NULL, NULL, NULL);
+	}
+}
+
 bool ProcessInterace::InitProcessCheckHandler() {
 	proCheckHandler = new Protector::ProcessCheckHandler(PROCESS_START, Protector::PROCESS_CHECK_PASS);
 	passCheckHandler = new Protector::PasswordCheckHandler(PASSWORD_CHECK, Protector::PASSWORD_CHECK_PASS);

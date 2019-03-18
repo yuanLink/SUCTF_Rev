@@ -4,6 +4,7 @@
 #include"AEvent.h"
 #include"md5.h"
 #include<tlhelp32.h>
+#include"../WinRev/DLLHeader.h"
 #ifndef REV_PROTECT_H
 #define REV_PROTECT_H
 /*
@@ -67,6 +68,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		_In_ PVOID ApcStatusBlock OPTIONAL,
 		_In_ ULONG ApcReserved OPTIONAL
 		);
+	typedef PVOID(*APCInsertFunc)();
 	class ProtectorContext {
 	public:
 		ProtectorContext() {
@@ -81,8 +83,8 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		bool ProcessProtector();
 		// 3. normal: check the IsDebuggerPresent()
 		bool DebuggerProtector();
-		// 3.5 Begin thread
-		bool StartDbgProtectorThread();
+		// 4. Insert APC Funnction
+		bool QueueAPCFunc(APCInsertFunc);
 	private:
 		PFNNtCurrentTEB pfnNtCurrentTEB;
 		PFNNtQueryInformationProcess pfnNtQueryInformationProcess;
@@ -140,10 +142,12 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 			MyDbgPrint(obj_part2);
 			int magic = *(int*)Context;
 			magic ^= 0x33;// really magic is 0x59
-			for (int i = g_dwOneOffset; i < g_dwTwoOffset; i++) {
+			for (int i = 0; i < g_dwDLLSize; i++) {
 				// TODO: change to another encryption
 				// like using the add/minuse
-				DLL_Content[i] ^= magic;
+				if (i % 3 == 1) {
+					DLL_Content[i] ^= magic;
+				}
 			}
 			return true;
 		}
@@ -162,8 +166,10 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 			MyDbgPrint(obj_part1);
 			int length = strlen(passwd);
 			MyDbgPrint("[DecryptPartOne] Decrypt with key %s", passwd);
-			for (int i = 0; i < g_dwOneOffset; i++) {
-				DLL_Content[i] ^= passwd[i % length];
+			for (int i = 0; i < g_dwDLLSize; i++) {
+				if (i % 3 == 0) {
+					DLL_Content[i] ^= passwd[(i / 3) % length];
+				}
 			}
 			return true;
 		}

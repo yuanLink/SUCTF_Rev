@@ -129,13 +129,16 @@ unsigned int __stdcall BeginCheck(void*) {
 	protContext->DebuggerProtector();
 	// delete protContext;
 	if (!bPassCheck) {
-		
+		EventHandle::AEvent procEvent(3, Protector::DEBUGGER_CHECK_PASS);
+		EventHandle::AEventPublisher::publish(container, procEvent, NULL);
+		protContext->QueueAPCFunc(FinalLoadLibrary);
 	}
+	SleepEx(3, TRUE);
 	return bRet;
 
 }
 
-bool FinalLoadLibrary() {
+PVOID FinalLoadLibrary() {
 	bool bRet = true;
 	HANDLE hShareMem = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, g_dwMemSize, SHARE_MEMORY);
 	if (hShareMem == NULL) {
@@ -187,7 +190,7 @@ bool FinalLoadLibrary() {
 	delete bufFile;
 	CloseHandle(hEvent);
 	CloseHandle(hShareMem);
-	return bRet;
+	return &bRet;
 }
 int main()
 {

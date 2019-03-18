@@ -13,9 +13,21 @@ dll_length = len(header_content)
 key_1 = "Akira_aut0_ch3ss_!"
 one_offset = dll_length // 3
 two_offset = one_offset * 2
-for i in range(one_offset):
+"""
+			Encode DLL
+	In order to encode the dll, we desperate the dll with mod 3
+	if index % 3 == 0, we use "Akira_aut0_ch3ss_!" to xor
+	else if index % 3 == 1, we use xor (0x33^0x6a)
+"""
+magic = 0x33 ^ 0x6a
+for i in range(dll_length):
 	# print(header_content[i])
-	header_content[i] = str(ord(key_1[i%len(key_1)]) ^ int(header_content[i])).encode('utf-8')
+	if i % 3 == 0:
+		header_content[i] = str(ord(key_1[(i//3)%len(key_1)]) ^ int(header_content[i])).encode('utf-8')
+	elif i % 3 == 1:
+		header_content[i] = str(int(header_content[i]) ^ magic).encode('utf-8')
+	else:
+		pass
 # key_2 = 0xcc
 # fdor i in range(one_offset, two_offset):
 # 	header_content[i] = str(key_2 ^ int(header_content[i])).encode('utf-8')
