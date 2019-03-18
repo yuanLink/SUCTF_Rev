@@ -18,7 +18,7 @@ EXTERN_C
 #ifdef _M_X64  
 #pragma const_seg (".CRT$XLB")  
 const
-#else  
+#else																																		
 #pragma data_seg (".CRT$XLB")  
 #endif  
 
@@ -125,7 +125,7 @@ bool BeginCheck() {
 #endif
 	}
 	// start new threads
-	// protContext->DebuggerProtector();
+	protContext->DebuggerProtector();
 	delete protContext;
 	return bRet;
 

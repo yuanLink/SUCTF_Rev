@@ -73,7 +73,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		// 2. check the process that has not hash number(like ida.exe ida64.exe so on)
 		bool ProcessProtector();
 		// 3. normal: check the IsDebuggerPresent()
-		bool DebuggerProtector(void*);
+		bool DebuggerProtector();
 		// 3.5 Begin thread
 		bool StartDbgProtectorThread();
 	private:
@@ -115,7 +115,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 //#endif
 //			return pPeb;
 //		}
-		static bool DebuggerCheckWithPEB();
+		bool DebuggerCheckWithPEB();
 		#define FLG_HEAP_ENABLE_TAIL_CHECK 0x10
 		#define FLG_HEAP_ENABLE_FREE_CHECK 0x20
 		#define FLG_HEAP_VALIDATE_PARAMETERS 0x40

@@ -232,7 +232,7 @@ bool Protector::ProtectorContext::DebuggerCheckWithPEB() {
 	return true;
 }
 // 3. normal: check the IsDebuggerPresent()
-bool Protector::ProtectorContext::DebuggerProtector(void*) {
+bool Protector::ProtectorContext::DebuggerProtector() {
 	BOOL bDebug = true;
 	do {
 		if (pfnZwQueryInformationThread) {
