@@ -176,6 +176,21 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 	private:
 		char obj_part1[125] = "Now just a test1";
 	};
+
+	class DebuggerCheckHandler :public EventHandle::AEventHandler {
+	public:
+		DebuggerCheckHandler(int eventhandler_id, EVENTTYPE typeId) :AEventHandler(eventhandler_id, typeId) {
+			// memset()
+		}
+		bool OnEventTrigger(void *Context) {
+			char* passwd = (char*)Context;
+			MyDbgPrint(obj_part3);
+			// TODO:add the third one encryption
+			return true;
+		}
+	private:
+		char obj_part3[125] = "Now just a test3";
+	};
 }
 
 class ProcessInterace {
