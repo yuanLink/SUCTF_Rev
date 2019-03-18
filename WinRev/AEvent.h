@@ -4,7 +4,7 @@
 #include<cstdio>
 #include<vector>
 #include<map>
-
+#include<mutex>
 /*
  *		AEvent
  *
@@ -129,6 +129,8 @@ namespace EventHandle{
 		 * @return the number of the event trigger
 		 */
 		static int publish(AEventContainer*, AEvent, void* Context);
+	private:
+		static std::mutex mtxPublish;
 	};
 
 	class AEventContainer {

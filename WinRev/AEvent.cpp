@@ -63,6 +63,8 @@ int EventHandle::AEventSubscriber::unsubscribe(AEventContainer* container, AEven
 	}
 	return container->RemoveEventHandler(eventHandler);
 }
+
+std::mutex EventHandle::AEventPublisher::mtxPublish;
 // ============== Eventh Publisher =====================
 int EventHandle::AEventPublisher::publish(AEventContainer* container, AEvent aevent, void* Context){
 
@@ -70,6 +72,8 @@ int EventHandle::AEventPublisher::publish(AEventContainer* container, AEvent aev
 		MyDbgPrint("It's an empty container in publish..\n");
 		return -1;
 	}
+	// add the mutex so it can support multi thread
+	mtxPublish.lock();
 	int dwTriggerNum = 0;
 	std::vector<AEventHandler*>* tmp = container->GetAEventHandler(aevent);
 	if(tmp != NULL){
@@ -82,4 +86,5 @@ int EventHandle::AEventPublisher::publish(AEventContainer* container, AEvent aev
 			eachEventHandler->OnEventTrigger(Context);
 		}
 	}
+	mtxPublish.unlock();
 }

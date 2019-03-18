@@ -73,6 +73,8 @@ bool GlobalInit() {
 		MyDbgPrint("Init failed");
 		return bRet;
 	}
+	protContext = new Protector::ProtectorContext();
+	protContext->InitProtector();
 	return false;
 }
 
@@ -114,10 +116,9 @@ bool FakeChecking() {
 }
 // check step 1
 // ================ TODO: Add this function to multi-thread ====================
-bool BeginCheck() {
+unsigned int __stdcall BeginCheck(void*) {
+	static bool bPassCheck = false;
 	bool bRet = false;
-	protContext = new Protector::ProtectorContext();
-	protContext->InitProtector();
 	if (!protContext->ProcessProtector()) {
 		MyDbgPrint("The Process Protector Failed!");
 #ifdef _RELEASE
@@ -126,7 +127,10 @@ bool BeginCheck() {
 	}
 	// start new threads
 	protContext->DebuggerProtector();
-	delete protContext;
+	// delete protContext;
+	if (!bPassCheck) {
+		
+	}
 	return bRet;
 
 }
@@ -188,7 +192,9 @@ bool FinalLoadLibrary() {
 int main()
 {
 	GlobalInit();
-	BeginCheck();
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
+		BeginCheck,
+		NULL, NULL, NULL);
 	// UnitTestForDLL();
 	FakeChecking();
 	FinalLoadLibrary();
