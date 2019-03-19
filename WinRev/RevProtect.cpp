@@ -5,7 +5,7 @@
 extern EventHandle::AEventContainer* container;
 wchar_t checkSign[][33] = {
 	L"438078d884693cdb2dbc12a84d381899",
-	L"6de452781ffd3e77696e0564d27dbdfd",
+	L"6de452781ffd3e77696e0564d27dbdfd",//windbg.exe
 	L"611db7cd21044e969b0b28008d1ef565",//??
 	L"2cffaa33fdbfe6dea9df8aabc71b9989",//ida64.exe
 	L"c898eaf62c0cbcc089939366f516e09f",
@@ -90,7 +90,7 @@ void CheckGlobalFlagsClearInFile()
 }
 
 bool DecryptThirdPart() {
-
+	return true;
 }
 bool Protector::ProtectorContext::InitProtector() {
 	bool bRet = false;
@@ -99,11 +99,11 @@ bool Protector::ProtectorContext::InitProtector() {
 		printf("[ERROR] Get Handle failed!\n");
 		return bRet;
 	}
-	pfnNtCurrentTEB = (PFNNtCurrentTEB)GetProcAddress(hDll, "NtCurrentTeb");
+	// pfnNtCurrentTEB = (PFNNtCurrentTEB)GetProcAddress(hDll, "NtCurrentTeb");
 	pfnNtQueryInformationProcess = (PFNNtQueryInformationProcess)GetProcAddress(hDll, "NtQueryInformationProcess");
 	pfnZwQueryInformationThread = (PFNZwQueryInformationThread)GetProcAddress(hDll, "ZwQueryInformationThread");
 	pfnNtQueueApcThread = (NTSTATUS(NTAPI *)(HANDLE, PVOID, PVOID, PVOID, ULONG)) GetProcAddress(hDll, "NtQueueApcThread");
-	if (!pfnNtCurrentTEB || 
+	if (// !pfnNtCurrentTEB || 
 		!pfnNtQueryInformationProcess ||
 		!pfnZwQueryInformationThread ||
 		!pfnNtQueueApcThread) {
@@ -116,6 +116,7 @@ bool Protector::ProtectorContext::InitProtector() {
 
 bool Protector::ProtectorContext::ThreadProtector() {
 	bool bRet = FALSE;
+	return bRet;
 }
 // 2. check the process that has not hash number(like ida.exe ida64.exe so on)
 // this will work when the thread is created
@@ -221,15 +222,18 @@ bool Protector::ProtectorContext::DebuggerProtector() {
 bool Protector::ProtectorContext::QueueAPCFunc(APCInsertFunc func) {
 	if (pfnNtQueueApcThread) {
 		HANDLE hThread = GetCurrentThread();
-		pfnNtQueueApcThread(hThread, &func, NULL, NULL, NULL);
+		pfnNtQueueApcThread(hThread, func, NULL, NULL, NULL);
 	}
+	return true;
 }
 
 bool ProcessInterace::InitProcessCheckHandler() {
 	proCheckHandler = new Protector::ProcessCheckHandler(PROCESS_START, Protector::PROCESS_CHECK_PASS);
 	passCheckHandler = new Protector::PasswordCheckHandler(PASSWORD_CHECK, Protector::PASSWORD_CHECK_PASS);
+	dbgCheckHandler = new Protector::DebuggerCheckHandler(DEBUGER_CHECK, Protector::DEBUGGER_CHECK_PASS);
 	int dwRet = EventHandle::AEventSubscriber::subscribe(container, proCheckHandler);
 	dwRet = EventHandle::AEventSubscriber::subscribe(container, passCheckHandler);
+	dwRet = EventHandle::AEventSubscriber::subscribe(container, dbgCheckHandler);
 	
 	return dwRet >= 0;
 }

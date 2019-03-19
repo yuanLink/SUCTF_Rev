@@ -45,6 +45,7 @@ EventHandle::AEventContainer* container = 0;
 ProcessInterace* procInterface = 0;
 Protector::ProtectorContext* protContext = 0;
 
+PVOID FinalLoadLibrary();
 //void DecryptPartOne(char* passwd) {
 //	// TODO:use passwd to decode this content
 //	int length = strlen(passwd);
@@ -195,12 +196,14 @@ PVOID FinalLoadLibrary() {
 int main()
 {
 	GlobalInit();
-	HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
-		BeginCheck,
-		NULL, NULL, NULL);
-	// UnitTestForDLL();
+	//HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
+	//	BeginCheck,
+	//	NULL, NULL, NULL);
 	FakeChecking();
-	FinalLoadLibrary();
+	BeginCheck(NULL);
+	// UnitTestForDLL();
+	
+	// FinalLoadLibrary();
 	// FakeChecking();
     return 0;
 }

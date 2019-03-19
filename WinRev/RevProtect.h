@@ -4,7 +4,7 @@
 #include"AEvent.h"
 #include"md5.h"
 #include<tlhelp32.h>
-#include"../WinRev/DLLHeader.h"
+// #include"../WinRev/DLLHeader.h"
 #ifndef REV_PROTECT_H
 #define REV_PROTECT_H
 /*
@@ -15,6 +15,7 @@ return (struct _TEB *)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
 */
 
 extern int g_dwOneOffset;
+extern int g_dwDLLSize;
 extern char DLL_Content[];
 namespace Protector {
 
@@ -199,13 +200,15 @@ public:
 		PROCESS_START,
 		THREAD_QUERY,
 		LOAD_LIBRARY,
-		PASSWORD_CHECK
+		PASSWORD_CHECK,
+		DEBUGER_CHECK
 	};
 	bool InitProcessCheckHandler();
 private:
 	// all handler put here
 	Protector::ProcessCheckHandler* proCheckHandler;
 	Protector::PasswordCheckHandler* passCheckHandler;
+	Protector::DebuggerCheckHandler* dbgCheckHandler;
 };
 
 #endif REV_PROTECT_H
