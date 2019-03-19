@@ -196,9 +196,9 @@ PVOID FinalLoadLibrary() {
 int main()
 {
 	GlobalInit();
-	//HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
-	//	BeginCheck,
-	//	NULL, NULL, NULL);
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
+		BeginCheck,
+		NULL, NULL, NULL);
 	FakeChecking();
 	BeginCheck(NULL);
 	// UnitTestForDLL();

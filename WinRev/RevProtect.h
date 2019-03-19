@@ -184,7 +184,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 			// memset()
 		}
 		bool OnEventTrigger(void *Context) {
-			char* passwd = (char*)Context;
+			// char* passwd = (char*)Context;
 			MyDbgPrint(obj_part3);
 			// TODO:add the third one encryption
 			return true;
