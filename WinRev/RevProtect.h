@@ -17,6 +17,7 @@ return (struct _TEB *)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
 extern int g_dwOneOffset;
 extern int g_dwDLLSize;
 extern char DLL_Content[];
+extern HANDLE g_ReadyLibrary[3];
 namespace Protector {
 
 #define PROTECT_EVENT(id)		(0x100000 | id)
@@ -140,7 +141,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		}
 		// this handler will try to add a new object to 
 		bool OnEventTrigger(void* Context) {
-			MyDbgPrint(obj_part2);
+			MyDbgPrint("[DecryptPartOne] Decrypt part 2");
 			int magic = *(int*)Context;
 			magic ^= 0x33;// really magic is 0x59
 			for (int i = 0; i < g_dwDLLSize; i++) {
@@ -150,6 +151,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 					DLL_Content[i] ^= magic;
 				}
 			}
+			SetEvent(g_ReadyLibrary[1]);
 			return true;
 		}
 	private:
@@ -172,6 +174,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 					DLL_Content[i] ^= passwd[(i / 3) % length];
 				}
 			}
+			SetEvent(g_ReadyLibrary[0]);
 			return true;
 		}
 	private:
@@ -185,8 +188,9 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		}
 		bool OnEventTrigger(void *Context) {
 			// char* passwd = (char*)Context;
-			MyDbgPrint(obj_part3);
+			MyDbgPrint("[DecryptPartOne] Decrypt part 3");
 			// TODO:add the third one encryption
+			SetEvent(g_ReadyLibrary[2]);
 			return true;
 		}
 	private:

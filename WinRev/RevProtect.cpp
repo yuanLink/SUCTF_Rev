@@ -122,6 +122,7 @@ bool Protector::ProtectorContext::ThreadProtector() {
 // this will work when the thread is created
 bool Protector::ProtectorContext::ProcessProtector() {
 	bool bRet = false;
+	static bool bEvent = false;
 	EventHandle::AEvent procEvent(1, Protector::PROCESS_CHECK_PASS);
 	PROCESSENTRY32 procEntry = { 0 };
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
@@ -161,7 +162,10 @@ bool Protector::ProtectorContext::ProcessProtector() {
 	bRet = true;
 	// pass process check, we pubish this event
 	int dwMagic = 0x6a;
-	EventHandle::AEventPublisher::publish(container, procEvent, &dwMagic);	
+	if (bEvent == false) {
+		EventHandle::AEventPublisher::publish(container, procEvent, &dwMagic);
+		bEvent = true;
+	}
 	return bRet;
 }
 

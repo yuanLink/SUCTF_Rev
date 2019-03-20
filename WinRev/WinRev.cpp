@@ -44,7 +44,7 @@ extern void CheckGlobalFlagsClearInFile();
 EventHandle::AEventContainer* container = 0;
 ProcessInterace* procInterface = 0;
 Protector::ProtectorContext* protContext = 0;
-
+HANDLE g_ReadyLibrary[3];
 PVOID FinalLoadLibrary();
 //void DecryptPartOne(char* passwd) {
 //	// TODO:use passwd to decode this content
@@ -74,6 +74,10 @@ bool GlobalInit() {
 		MyDbgPrint("Init failed");
 		return bRet;
 	}
+	g_ReadyLibrary[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
+	g_ReadyLibrary[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
+	g_ReadyLibrary[2] = CreateEvent(NULL, FALSE, FALSE, NULL);
+
 	protContext = new Protector::ProtectorContext();
 	protContext->InitProtector();
 	return false;
@@ -97,6 +101,7 @@ bool CheckPasswd(char* passwd) {
 	return true;
 }
 // Akira_aut0_ch3ss_!
+// flag{Akira_Win_Homwork!}
 bool FakeChecking() {
 	bool bRet = false;
 	char passwd[19] = { 0 };
@@ -104,7 +109,7 @@ bool FakeChecking() {
 	puts("[+] Akira's Homework 2nd [+]");
 	puts("[+]======================[+]");
 	puts("[=] My passwords is:");
-	scanf("%18s", passwd);
+	scanf_s("%18s", passwd,19);
 	if (CheckPasswd(passwd)) {
 		// here we publish new event
 		// we use akira key to decode the message and 
@@ -141,55 +146,77 @@ unsigned int __stdcall BeginCheck(void*) {
 
 PVOID FinalLoadLibrary() {
 	bool bRet = true;
-	HANDLE hShareMem = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, g_dwMemSize, SHARE_MEMORY);
-	if (hShareMem == NULL) {
-		printf("[UnitTestForLoadDLL] create file mapping failed with %x!\n", GetLastError());
-		bRet = false;
+	DWORD dwEventRet = WaitForMultipleObjects(3, g_ReadyLibrary, TRUE,5000);
+	if (dwEventRet == WAIT_TIMEOUT) {
+		printf("[UnitTestForLoadDLL] Time out!\n");
+		//exit(-1);
 	}
-	PVOID buffer = MapViewOfFile(hShareMem, FILE_MAP_ALL_ACCESS, 0, 0, g_dwMemSize);
-	if (buffer == NULL) {
-		printf("[UnitTestForLoadDLL] map file failed with %x\n", GetLastError());
-		bRet = false;
-	}
-	memset(buffer, '\0', g_dwMemSize);
-
-	char test_buffer[] = { 0x7c,0x45,0x38,0x38,0x59,0x4f,0x56,0x8f,0xb6,0x9d,0xaa,0x7b,0x9c,0xb6,0x11,0x36,0x6f,0x6d,0x77,0x6f,0x72,0x6b,0x21,0x7d };
-
-	memcpy(buffer, test_buffer, g_dwBufferSize);
-	HANDLE hEvent = CreateEvent(NULL, FALSE, TRUE, DLL_INPUT);
-	if (hEvent == INVALID_HANDLE_VALUE) {
-		printf("[UnitTestForLoadDLL] event failed with %x\n", GetLastError());
-		bRet = false;
-	}
-	//HANDLE hFile = CreateFile(L"..\\x64\\Debug\\RevDLL.dll", GENERIC_READ,
-	//	FILE_SHARE_READ, NULL, OPEN_EXISTING,
-	//	FILE_ATTRIBUTE_NORMAL, NULL);
-	//if (hFile == INVALID_HANDLE_VALUE) {
-	//	printf("[UnitTestForLoadDLL] Create file error!\n");
-	//	return false;
-	//}
-	int dwDLLSize = 0;
-	// dwDLLSize = GetFileSize(hFile, NULL);
-	dwDLLSize = g_dwDLLSize;
-	char* bufFile = new char[dwDLLSize];
-		// (char*)malloc(dwDLLSize);
-	ZeroMemory(bufFile, dwDLLSize);
-	// ReadFile(hFile, bufFile, dwDLLSize, NULL, NULL);
-	// check the magic number
-	memcpy(bufFile, DLL_Content, g_dwDLLSize);
-	LOAD_DLL_INFO *hDLL = new LOAD_DLL_INFO;
-	if (bufFile[0] == 'M' && bufFile[1] == 'Z') {
-		// try to read file from memory
-		DWORD res = LoadDLLFromMemory(bufFile, dwDLLSize, NULL, hDLL);
-		if (res != ELoadDLLResult_OK) {
-			printf("[UnitTestForLoadDLL] Load DLL From memory failed!\n");
+	PVOID buffer = NULL;
+	HANDLE hShareMem = NULL;
+	char* bufFile = NULL;
+	LOAD_DLL_INFO *hDLL = NULL;
+	HANDLE hEvent = NULL;
+	do {
+		hShareMem = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, g_dwMemSize, SHARE_MEMORY);
+		if (hShareMem == NULL) {
+			printf("[UnitTestForLoadDLL] create file mapping failed with %x!\n", GetLastError());
 			bRet = false;
+			break;
 		}
-		// HANDLE hDLL = LoadLibrary(L"..\\x64\\Debug\\RevDLL.dll");
-	}
-	delete hDLL;
-	delete bufFile;
-	CloseHandle(hEvent);
+		buffer = MapViewOfFile(hShareMem, FILE_MAP_ALL_ACCESS, 0, 0, g_dwMemSize);
+		if (buffer == NULL) {
+			printf("[UnitTestForLoadDLL] map file failed with %x\n", GetLastError());
+			bRet = false;
+			break;
+		}
+		memset(buffer, '\0', g_dwMemSize);
+
+		char test_buffer[] = { 0x7c,0x45,0x38,0x38,0x59,0x4f,0x56,0x8f,0xb6,0x9d,0xaa,0x7b,0x9c,0xb6,0x11,0x36,0x6f,0x6d,0x77,0x6f,0x72,0x6b,0x21,0x7d };
+
+		memcpy(buffer, test_buffer, g_dwBufferSize);
+		hEvent = CreateEvent(NULL, FALSE, TRUE, DLL_INPUT);
+		if (hEvent == INVALID_HANDLE_VALUE) {
+			printf("[UnitTestForLoadDLL] event failed with %x\n", GetLastError());
+			bRet = false;
+			break;
+		}
+		//HANDLE hFile = CreateFile(L"..\\x64\\Debug\\RevDLL.dll", GENERIC_READ,
+		//	FILE_SHARE_READ, NULL, OPEN_EXISTING,
+		//	FILE_ATTRIBUTE_NORMAL, NULL);
+		//if (hFile == INVALID_HANDLE_VALUE) {
+		//	printf("[UnitTestForLoadDLL] Create file error!\n");
+		//	return false;
+		//}
+		int dwDLLSize = 0;
+		// dwDLLSize = GetFileSize(hFile, NULL);
+		dwDLLSize = g_dwDLLSize;
+		bufFile = new char[dwDLLSize];
+		// (char*)malloc(dwDLLSize);
+		ZeroMemory(bufFile, dwDLLSize);
+		// ReadFile(hFile, bufFile, dwDLLSize, NULL, NULL);
+		// check the magic number
+		memcpy(bufFile, DLL_Content, g_dwDLLSize);
+		hDLL = new LOAD_DLL_INFO;
+		printf("try to cakk!\n");
+		if (bufFile[0] == 'M' && bufFile[1] == 'Z') {
+			// try to read file from memory
+			
+			DWORD res = LoadDLLFromMemory(bufFile, dwDLLSize, NULL, hDLL);
+			if (res != ELoadDLLResult_OK) {
+				printf("[UnitTestForLoadDLL] Load DLL From memory failed!\n");
+				bRet = false;
+				break;
+			}
+			// HANDLE hDLL = LoadLibrary(L"..\\x64\\Debug\\RevDLL.dll");
+		}
+	} while (false);
+	if(hDLL != NULL)
+		delete hDLL;
+	if(bufFile != NULL)
+		delete bufFile;
+	if(hEvent != NULL && hEvent != INVALID_HANDLE_VALUE)
+		CloseHandle(hEvent);
+	if(hShareMem != NULL && hShareMem != INVALID_HANDLE_VALUE)
 	CloseHandle(hShareMem);
 	return &bRet;
 }
@@ -199,12 +226,16 @@ int main()
 	HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
 		BeginCheck,
 		NULL, NULL, NULL);
-	FakeChecking();
-	BeginCheck(NULL);
+	if (!FakeChecking()) {
+		printf("WHO ARE YOU????\n");
+		ExitThread(-1);
+	}
+	// BeginCheck(NULL);
 	// UnitTestForDLL();
 	
 	// FinalLoadLibrary();
 	// FakeChecking();
+	ExitThread(0);
     return 0;
 }
 
