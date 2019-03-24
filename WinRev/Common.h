@@ -18,7 +18,7 @@
 #define SHARE_MEMORY L"ShareMemory"
 #define DLL_INPUT L"DLLInput"
 const int g_dwMemSize = 0x8000;
-const int g_dwBufferSize = 24;
+const int g_dwBufferSize = 16;
 #include<stdio.h>
 #include<Windows.h>
 #include<string>

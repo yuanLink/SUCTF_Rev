@@ -12,7 +12,7 @@ void DecMessage(char key[], char answer[], char buffer[]) {
 bool AttachProcess() {
 	char input[g_dwBufferSize+1] = { 0 };
 	puts("Now check the sign:");
-	scanf("%25s", input);
+	scanf("%32s", input);
 	// here we write the buffer to share memory, and wen send the 
 	// really event to the main thread to make main thread
 	// we wait main thread to
@@ -48,6 +48,7 @@ bool AttachProcess() {
 	//	printf("0x%x,", (unsigned char)ans_buffer[i]);
 	//}
 	//printf("\n%s\n", answer);
+	//printf("%s\n", input);
 	if (!strcmp(answer, input)) {
 		printf("Get finally answer!\n");
 	}

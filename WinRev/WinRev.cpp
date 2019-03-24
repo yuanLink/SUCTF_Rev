@@ -55,12 +55,12 @@ ProcessInterace* procInterface = 0;
 Protector::ProtectorContext* protContext = 0;
 HANDLE g_ReadyLibrary[3];
 PVOID FinalLoadLibrary();
-//void EncMessage(char key[], char answer[], char buffer[]) {
-//	struct AES_ctx ctx;
-//	AES_init_ctx(&ctx, (const uint8_t*)key);
-//	memcpy(answer, buffer, g_dwBufferSize);
-//	AES_ECB_encrypt(&ctx, (uint8_t*)answer);
-//}
+void EncMessage(char key[], char answer[], char buffer[]) {
+	struct AES_ctx ctx;
+	AES_init_ctx(&ctx, (const uint8_t*)key);
+	memcpy(answer, buffer, g_dwBufferSize);
+	AES_ECB_encrypt(&ctx, (uint8_t*)answer);
+}
 bool TestForAntiDbg() {
 	Protector::ProtectorContext prot;
 	prot.ThreadProtector();
@@ -110,7 +110,7 @@ bool CheckPasswd(char* passwd) {
 	return true;
 }
 // Akira_aut0_ch3ss_!
-// flag{Akira_Win_Homwork!}
+// flag{Ak1rAWin!}
 bool FakeChecking() {
 	bool bRet = false;
 	char passwd[19] = { 0 };
@@ -184,7 +184,7 @@ PVOID FinalLoadLibrary() {
 		}
 		memset(buffer, '\0', g_dwMemSize);
 
-		char test_buffer[] = { 0x68,0x2a,0x3e,0x7e,0x3e,0x28,0x33,0xc5,0x95,0x64,0x88,0x9e,0xee,0x42,0x72,0x13,0x6f,0x6d,0x77,0x6f,0x72,0x6b,0x21,0x7d };
+		char test_buffer[] = { 0x94,0xbf,0x7a,0xc,0xa4,0x35,0x50,0xd1,0xc2,0x15,0xec,0xef,0x9d,0x9a,0xaa,0x56 };
 
 		memcpy(buffer, test_buffer, g_dwBufferSize);
 		hEvent = CreateEvent(NULL, FALSE, TRUE, DLL_INPUT);
@@ -238,7 +238,7 @@ int main()
 {
 	//char key[] = "Ak1i3aS3cre7K3y";
 	//unsigned char answer[44] = { 0 };
-	//unsigned char buffer[] = "flag{Akira_Win_Homwork!}";
+	//unsigned char buffer[] = "flag{Ak1rAWin!}";
 	//EncMessage(key, (char*)answer, (char*)buffer);
 	//for (int i = 0; i < sizeof(answer); i++) {
 	//	printf("0x%x,",answer[i]);
