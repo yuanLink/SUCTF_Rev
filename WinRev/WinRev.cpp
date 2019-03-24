@@ -55,12 +55,12 @@ ProcessInterace* procInterface = 0;
 Protector::ProtectorContext* protContext = 0;
 HANDLE g_ReadyLibrary[3];
 PVOID FinalLoadLibrary();
-void EncMessage(char key[], char answer[], char buffer[]) {
-	struct AES_ctx ctx;
-	AES_init_ctx(&ctx, (const uint8_t*)key);
-	memcpy(answer, buffer, g_dwBufferSize);
-	AES_ECB_encrypt(&ctx, (uint8_t*)answer);
-}
+//void EncMessage(char key[], char answer[], char buffer[]) {
+//	struct AES_ctx ctx;
+//	AES_init_ctx(&ctx, (const uint8_t*)key);
+//	memcpy(answer, buffer, g_dwBufferSize);
+//	AES_ECB_encrypt(&ctx, (uint8_t*)answer);
+//}
 bool TestForAntiDbg() {
 	Protector::ProtectorContext prot;
 	prot.ThreadProtector();
