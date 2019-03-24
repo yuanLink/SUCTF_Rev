@@ -14,15 +14,15 @@
 typedef int EVENTTYPE;
 
 #ifdef _DEBUG
-#define MyDbgPrint(Fmt,...)				\
+#define MyDbgPrint(Fmt,...)				/*\
 		puts("[EventHandle]");			\
 		printf(Fmt, __VA_ARGS__);		\
-		puts("");
+		puts("");*/
 #else
-#define MyDbgPrint(Fmt,...)				\
+#define MyDbgPrint(Fmt,...)				/*\
 		puts("[Release]");				\
 		printf(Fmt, __VA_ARGS__);		\
-		puts("");
+		puts("");*/
 #endif
 
 namespace EventHandle{

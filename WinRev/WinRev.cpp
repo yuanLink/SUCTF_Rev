@@ -4,6 +4,7 @@
 #include"LoadDLL.h"
 #include"DLLHeader.h"
 #include <process.h>
+#include"GlobalString.h"
 
 void NTAPI __stdcall TLS_CALLBACK1(PVOID DllHandle, DWORD dwReason, PVOID Reserved);
 
@@ -31,12 +32,20 @@ VOID NTAPI TLS_CALLBACK1(PVOID DllHandle, DWORD Reason, PVOID Reserved)
 	if (IsDebuggerPresent())
 	{
 		MessageBoxA(NULL, "Stop debugging program!", "Error", MB_OK | MB_ICONERROR);
-		// TerminateProcess(GetCurrentProcess(), 0xBABEFACE);
+		TerminateProcess(GetCurrentProcess(), 0xBABEFACE);
 	}
+	GetRealMsg(szNTQueryProcess, NTQUERYINFORMATIONPROCESS_MSG);
+	GetRealMsg(szZwQueryThread, ZWQUERYINFORMATIONTHREAD_MSG);
+	GetRealMsg(szNtQueueApcThread, NTQUEUEAPCTHREAD_MSG);
+	GetRealMsg(szNtdll, NTDLL_MSG);
+	/*puts((const char*)szNTQueryProcess);
+	puts((const char*)szZwQueryThread);
+	puts((const char*)szNtQueueApcThread);
+	puts((const char*)szNtdll);*/
 }
 
-extern void UnitTestForAEvent();
-extern void UnitTestForDLL();
+//extern void UnitTestForAEvent();
+//extern void UnitTestForDLL();
 extern void CheckGlobalFlagsClearInProcess();
 extern void CheckGlobalFlagsClearInFile();
 
@@ -84,20 +93,23 @@ bool GlobalInit() {
 }
 
 bool CheckPasswd(char* passwd) {
-	char checkpw[] = "jZekqArhU|9g>0O}|d";
+	const int dwPWLength = sizeof(szCheckPasswd);
+	char checkpw[dwPWLength+1] = { 0 };
+	memcpy(checkpw, szCheckPasswd, sizeof(szCheckPasswd));
+	GetRealMsg(checkpw, CHECK_PASSWD_MSG)
 	char tmp[19] = { 0 };
-	for (int i = 0; i < strlen(checkpw); i++) {
+	for (int i = 0; i < sizeof(checkpw) - 1; i++) {
 		tmp[i] = passwd[i] ^ i;
 	}
 	int maps[] = { 1, 5, 4, 2, 3, 0 };
-	for (int i = 0; i < strlen(checkpw); i++) {
+	for (int i = 0; i < sizeof(checkpw) - 1; i++) {
 		int index = maps[i % 6] + (i / 6) * 6;
 		if (checkpw[i] != tmp[index]) {
-			MyDbgPrint("Error compare at %x", i);
+			// MyDbgPrint("Error compare at %x", i);
 			return false;
 		}
 	}
-	MyDbgPrint("Finish print!");
+	// MyDbgPrint("Finish print!");
 	return true;
 }
 // Akira_aut0_ch3ss_!
@@ -105,10 +117,9 @@ bool CheckPasswd(char* passwd) {
 bool FakeChecking() {
 	bool bRet = false;
 	char passwd[19] = { 0 };
-	puts("[+]======================[+]");
-	puts("[+] Akira's Homework 2nd [+]");
-	puts("[+]======================[+]");
-	puts("[=] My passwords is:");
+	char szWelTmp[sizeof(szWelcome) + 1] = { 0 };
+	memcpy(szWelTmp, szWelcome, sizeof(szWelcome));
+	PrintRealMsg(szWelcome, WELCOME_MSG)
 	scanf_s("%18s", passwd,19);
 	if (CheckPasswd(passwd)) {
 		// here we publish new event
@@ -122,24 +133,26 @@ bool FakeChecking() {
 }
 // check step 1
 // ================ TODO: Add this function to multi-thread ====================
-unsigned int __stdcall BeginCheck(void*) {
+unsigned int __stdcall BeginCheck(void* arg_list) {
 	static bool bPassCheck = false;
 	bool bRet = false;
-	if (!protContext->ProcessProtector()) {
-		MyDbgPrint("The Process Protector Failed!");
+	while (true) {
+		if (!protContext->ProcessProtector()) {
+			MyDbgPrint("The Process Protector Failed!");
 #ifdef _RELEASE
-		exit(-1)
+			exit(-1)
 #endif
+		}
+		// start new threads
+		protContext->DebuggerProtector();
+		// delete protContext;
+		if (!bPassCheck) {
+			EventHandle::AEvent procEvent(3, Protector::DEBUGGER_CHECK_PASS);
+			EventHandle::AEventPublisher::publish(container, procEvent, NULL);
+			protContext->QueueAPCFunc(*(HANDLE*)arg_list, FinalLoadLibrary);
+		}
+		SleepEx(3, TRUE);
 	}
-	// start new threads
-	protContext->DebuggerProtector();
-	// delete protContext;
-	if (!bPassCheck) {
-		EventHandle::AEvent procEvent(3, Protector::DEBUGGER_CHECK_PASS);
-		EventHandle::AEventPublisher::publish(container, procEvent, NULL);
-		protContext->QueueAPCFunc(FinalLoadLibrary);
-	}
-	SleepEx(3, TRUE);
 	return bRet;
 
 }
@@ -148,8 +161,9 @@ PVOID FinalLoadLibrary() {
 	bool bRet = true;
 	DWORD dwEventRet = WaitForMultipleObjects(3, g_ReadyLibrary, TRUE,5000);
 	if (dwEventRet == WAIT_TIMEOUT) {
-		printf("[UnitTestForLoadDLL] Time out!\n");
-		//exit(-1);
+		PrintRealMsg(szTimeout, TIME_OUT_MSG);
+		// printf("Time out!\n");
+		exit(-1);
 	}
 	PVOID buffer = NULL;
 	HANDLE hShareMem = NULL;
@@ -159,15 +173,17 @@ PVOID FinalLoadLibrary() {
 	do {
 		hShareMem = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, g_dwMemSize, SHARE_MEMORY);
 		if (hShareMem == NULL) {
-			printf("[UnitTestForLoadDLL] create file mapping failed with %x!\n", GetLastError());
+			// printf("[UnitTestForLoadDLL] create file mapping failed with %x!\n", GetLastError());
 			bRet = false;
-			break;
+			exit(-1);
+			// break;
 		}
 		buffer = MapViewOfFile(hShareMem, FILE_MAP_ALL_ACCESS, 0, 0, g_dwMemSize);
 		if (buffer == NULL) {
-			printf("[UnitTestForLoadDLL] map file failed with %x\n", GetLastError());
+			// printf("[UnitTestForLoadDLL] map file failed with %x\n", GetLastError());
 			bRet = false;
-			break;
+			exit(-1);
+			// break;
 		}
 		memset(buffer, '\0', g_dwMemSize);
 
@@ -176,8 +192,9 @@ PVOID FinalLoadLibrary() {
 		memcpy(buffer, test_buffer, g_dwBufferSize);
 		hEvent = CreateEvent(NULL, FALSE, TRUE, DLL_INPUT);
 		if (hEvent == INVALID_HANDLE_VALUE) {
-			printf("[UnitTestForLoadDLL] event failed with %x\n", GetLastError());
-			bRet = false;
+			// printf("[UnitTestForLoadDLL] event failed with %x\n", GetLastError());
+			exit(-1);
+			// bRet = false;
 			break;
 		}
 		//HANDLE hFile = CreateFile(L"..\\x64\\Debug\\RevDLL.dll", GENERIC_READ,
@@ -197,13 +214,13 @@ PVOID FinalLoadLibrary() {
 		// check the magic number
 		memcpy(bufFile, DLL_Content, g_dwDLLSize);
 		hDLL = new LOAD_DLL_INFO;
-		printf("try to cakk!\n");
+		// printf("try to cakk!\n");
 		if (bufFile[0] == 'M' && bufFile[1] == 'Z') {
 			// try to read file from memory
 			
 			DWORD res = LoadDLLFromMemory(bufFile, dwDLLSize, NULL, hDLL);
 			if (res != ELoadDLLResult_OK) {
-				printf("[UnitTestForLoadDLL] Load DLL From memory failed!\n");
+				// printf("[UnitTestForLoadDLL] Load DLL From memory failed!\n");
 				bRet = false;
 				break;
 			}
@@ -223,19 +240,18 @@ PVOID FinalLoadLibrary() {
 int main()
 {
 	GlobalInit();
+	HANDLE hCurThread = GetCurrentThread();
+	// Test for multithread
 	HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
 		BeginCheck,
-		NULL, NULL, NULL);
-	if (!FakeChecking()) {
-		printf("WHO ARE YOU????\n");
-		ExitThread(-1);
-	}
-	// BeginCheck(NULL);
-	// UnitTestForDLL();
+		&hCurThread, NULL, NULL);
 	
-	// FinalLoadLibrary();
-	// FakeChecking();
-	ExitThread(0);
+	if (!FakeChecking()) {
+		PrintRealMsg(szWrongPasswd, WRONG_PASSWD_MSG);
+		// TerminateProcess(GetCurrentProcess, 0);
+		exit(-1);
+	}
+	SleepEx(5000, TRUE);
     return 0;
 }
 

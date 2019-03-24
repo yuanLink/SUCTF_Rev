@@ -6,12 +6,18 @@ extern EventHandle::AEventContainer* container;
 wchar_t checkSign[][33] = {
 	L"438078d884693cdb2dbc12a84d381899",
 	L"6de452781ffd3e77696e0564d27dbdfd",//windbg.exe
-	L"611db7cd21044e969b0b28008d1ef565",//??
+	// L"611db7cd21044e969b0b28008d1ef565",//??
 	L"2cffaa33fdbfe6dea9df8aabc71b9989",//ida64.exe
 	L"c898eaf62c0cbcc089939366f516e09f",
 	L"5303e7f2944c9081f864a2e11a8a0aef",
 	L"679542632bddb4cf47ed0a61f1f83ee4"// dbgx_shell.exe(windbg_preview)
 };
+
+extern unsigned char szGet[];
+extern unsigned char magic[];
+extern unsigned char szNTQueryProcess[];
+extern unsigned char szZwQueryThread[];
+extern unsigned char szNtQueueApcThread[];
 
 PIMAGE_NT_HEADERS GetImageNtHeaders(PBYTE pImageBase)
 {
@@ -74,7 +80,7 @@ void CheckGlobalFlagsClearInFile()
 		if (pImageLoadConfigDirectory->GlobalFlagsClear != 0)
 		{
 			// std::cout << "Stop debugging program!" << std::endl;
-			MyDbgPrint("CheckGlobalFlag find you!\n");
+			// MyDbgPrint("CheckGlobalFlag find you!\n");
 			exit(-1);
 		}
 	}
@@ -96,18 +102,18 @@ bool Protector::ProtectorContext::InitProtector() {
 	bool bRet = false;
 	HMODULE hDll = GetModuleHandle(L"ntdll.dll");
 	if (hDll == NULL) {
-		printf("[ERROR] Get Handle failed!\n");
+		// printf("[ERROR] Get Handle failed!\n");
 		return bRet;
 	}
 	// pfnNtCurrentTEB = (PFNNtCurrentTEB)GetProcAddress(hDll, "NtCurrentTeb");
-	pfnNtQueryInformationProcess = (PFNNtQueryInformationProcess)GetProcAddress(hDll, "NtQueryInformationProcess");
-	pfnZwQueryInformationThread = (PFNZwQueryInformationThread)GetProcAddress(hDll, "ZwQueryInformationThread");
-	pfnNtQueueApcThread = (NTSTATUS(NTAPI *)(HANDLE, PVOID, PVOID, PVOID, ULONG)) GetProcAddress(hDll, "NtQueueApcThread");
+	pfnNtQueryInformationProcess = (PFNNtQueryInformationProcess)GetProcAddress(hDll, (LPCSTR)szNTQueryProcess);
+	pfnZwQueryInformationThread = (PFNZwQueryInformationThread)GetProcAddress(hDll, (LPCSTR)szZwQueryThread);
+	pfnNtQueueApcThread = (NTSTATUS(NTAPI *)(HANDLE, PVOID, PVOID, PVOID, ULONG)) GetProcAddress(hDll, (LPCSTR)szNtQueueApcThread);
 	if (// !pfnNtCurrentTEB || 
 		!pfnNtQueryInformationProcess ||
 		!pfnZwQueryInformationThread ||
 		!pfnNtQueueApcThread) {
-		MyDbgPrint("Could not get all the function ptr!\n");
+		// MyDbgPrint("Could not get all the function ptr!\n");
 		return bRet;
 	}
 	bRet = true;
@@ -128,16 +134,16 @@ bool Protector::ProtectorContext::ProcessProtector() {
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
 	HANDLE hProcSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hProcSnapshot == INVALID_HANDLE_VALUE) {
-		MyDbgPrint("Create Snap shot failed");
+		// MyDbgPrint("Create Snap shot failed");
 		return bRet;
 	}
 	BOOL bProcess = Process32First(hProcSnapshot, &procEntry);
 	if (bProcess == FALSE) {
-		MyDbgPrint("Could not get process");
+		// MyDbgPrint("Could not get process");
 		return bRet;
 	}
 	while (bProcess) {
-		MyDbgPrint("ProcessID:[%x]:%ls", procEntry.th32ProcessID, procEntry.szExeFile);
+		 MyDbgPrint("ProcessID:[%x]:%ls", procEntry.th32ProcessID, procEntry.szExeFile);
 		uint8_t bSign[33] = { 0 };
 		wchar_t chSign[33] = { 0 };
 		md5((const uint8_t*)procEntry.szExeFile, wcslen(procEntry.szExeFile), bSign);
@@ -145,11 +151,15 @@ bool Protector::ProtectorContext::ProcessProtector() {
 			swprintf(chSign + i * 2, 3, L"%02x", bSign[i]);
 		}
 #ifdef _DEBUG
-		printf("%ls\n", chSign);
+		// printf("%ls\n", chSign);
 #endif 
 		for (int i = 0; i < sizeof(checkSign) / sizeof(char**); i++) {
 			if (!wcscmp(chSign, checkSign[i])) {
-				printf("=====[+]====== Get It =====[+]======\n");
+				// printf("========%ls\n", procEntry.szExeFile);
+				//printf("%ls\n", chSign);
+				// printf("=====[+]====== Get It =====[+]======\n");
+				// PrintRealMsg(szGet, GET_DEBUG_MSG);
+				// exit(-1);
 #ifdef _RELEASE
 				exit(-1);
 #endif
@@ -163,6 +173,7 @@ bool Protector::ProtectorContext::ProcessProtector() {
 	// pass process check, we pubish this event
 	int dwMagic = 0x6a;
 	if (bEvent == false) {
+		// printf("send\n");
 		EventHandle::AEventPublisher::publish(container, procEvent, &dwMagic);
 		bEvent = true;
 	}
@@ -183,10 +194,10 @@ bool Protector::ProtectorContext::DebuggerCheckWithPEB() {
 	DWORD NtGlobalFlag = *(PDWORD)((PBYTE)pPeb + offsetNtGlobalFlag);
 	if (NtGlobalFlag & NT_GLOBAL_FLAG_DEBUGGED)
 	{
-		MyDbgPrint("PEB Debugging program!\n");
-		// exit(-1);
+		// MyDbgPrint("PEB Debugging program!\n");
+		exit(-1);
 	}
-	return true;
+	return false;
 }
 // 3. normal: check the IsDebuggerPresent()
 bool Protector::ProtectorContext::DebuggerProtector() {
@@ -196,36 +207,37 @@ bool Protector::ProtectorContext::DebuggerProtector() {
 			pfnZwQueryInformationThread(GetCurrentThread(), ThreadHideFromDebugger, NULL, 0);
 		}
 		if (IsDebuggerPresent()) {
-			// break;
+			break;
 		}
 		if (CheckRemoteDebuggerPresent(GetCurrentProcess(), (PBOOL)&bDebug)) {
-			// break;
+			// printf("debug is %x\n", bDebug);
+			break;
 		}
 		// make sure this function can work
 		if (pfnNtQueryInformationProcess) {
 			int debugPort = 0;
 			pfnNtQueryInformationProcess(GetCurrentProcess(), 7, &debugPort, sizeof(debugPort), NULL);
-			bDebug = debugPort != 0;
+			bDebug = (debugPort != 0) || bDebug;
+			// printf("debug is %x\n", bDebug);
 			HANDLE hDbgObj = NULL;
 			pfnNtQueryInformationProcess(GetCurrentProcess(), 0x1e, &hDbgObj, sizeof(hDbgObj), NULL);
-			bDebug = hDbgObj != NULL;
+			bDebug = (hDbgObj != NULL) || bDebug;
+			// printf("debug is %x\n", bDebug);
 		}
 		// TODO:add more debug check method
-		 bDebug = DebuggerCheckWithPEB();
+		 bDebug = bDebug||DebuggerCheckWithPEB() ;
+		 // printf("debug is %x\n", bDebug);
 	} while (false);
 	if (bDebug) {
-#ifdef _DEBUG
-		MyDbgPrint("Deteched!\n");
-#else
+		// printf("FIND!\n");
 		exit(-1);
-#endif
 	}
 	return bDebug;
 }
 
-bool Protector::ProtectorContext::QueueAPCFunc(APCInsertFunc func) {
+bool Protector::ProtectorContext::QueueAPCFunc(HANDLE hThread, APCInsertFunc func) {
 	if (pfnNtQueueApcThread) {
-		HANDLE hThread = GetCurrentThread();
+		// HANDLE hThread = GetCurrentThread();
 		pfnNtQueueApcThread(hThread, func, NULL, NULL, NULL);
 	}
 	return true;

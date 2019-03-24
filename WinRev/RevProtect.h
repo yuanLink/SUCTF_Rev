@@ -3,10 +3,16 @@
 #include"Common.h"
 #include"AEvent.h"
 #include"md5.h"
+// #include"GlobalString.h"
 #include<tlhelp32.h>
 // #include"../WinRev/DLLHeader.h"
 #ifndef REV_PROTECT_H
 #define REV_PROTECT_H
+#define PrintRealMsg(Msg,MsgType)			  \
+		for(int i = 0; i < sizeof(Msg); i++){ \
+			Msg[i] ^= magic[MsgType];		  \
+		}									  \
+		puts((char*)Msg);
 /*
 #if defined(_M_IX86)
 return (PTEB)__readfsdword(0x18);
@@ -86,7 +92,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		// 3. normal: check the IsDebuggerPresent()
 		bool DebuggerProtector();
 		// 4. Insert APC Funnction
-		bool QueueAPCFunc(APCInsertFunc);
+		bool QueueAPCFunc(HANDLE, APCInsertFunc);
 	private:
 		PFNNtCurrentTEB pfnNtCurrentTEB;
 		PFNNtQueryInformationProcess pfnNtQueryInformationProcess;
@@ -141,7 +147,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		}
 		// this handler will try to add a new object to 
 		bool OnEventTrigger(void* Context) {
-			MyDbgPrint("[DecryptPartOne] Decrypt part 2");
+			// MyDbgPrint("[DecryptPartOne] Decrypt part 2");
 			int magic = *(int*)Context;
 			magic ^= 0x33;// really magic is 0x59
 			for (int i = 0; i < g_dwDLLSize; i++) {
@@ -155,7 +161,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 			return true;
 		}
 	private:
-		char obj_part2[120] = "Now just a test2";
+		// char obj_part2[120] = "Now just a test2";
 					
 	};
 
@@ -166,9 +172,9 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		}
 		bool OnEventTrigger(void *Context) {
 			char* passwd = (char*)Context;
-			MyDbgPrint(obj_part1);
+			// MyDbgPrint(obj_part1);
 			int length = strlen(passwd);
-			MyDbgPrint("[DecryptPartOne] Decrypt with key %s", passwd);
+			// MyDbgPrint("[DecryptPartOne] Decrypt with key %s", passwd);
 			for (int i = 0; i < g_dwDLLSize; i++) {
 				if (i % 3 == 0) {
 					DLL_Content[i] ^= passwd[(i / 3) % length];
@@ -178,7 +184,7 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 			return true;
 		}
 	private:
-		char obj_part1[125] = "Now just a test1";
+		// char obj_part1[125] = "Now just a test1";
 	};
 
 	class DebuggerCheckHandler :public EventHandle::AEventHandler {
@@ -188,13 +194,13 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		}
 		bool OnEventTrigger(void *Context) {
 			// char* passwd = (char*)Context;
-			MyDbgPrint("[DecryptPartOne] Decrypt part 3");
+			// MyDbgPrint("[DecryptPartOne] Decrypt part 3");
 			// TODO:add the third one encryption
 			SetEvent(g_ReadyLibrary[2]);
 			return true;
 		}
 	private:
-		char obj_part3[125] = "Now just a test3";
+		// char obj_part3[125] = "Now just a test3";
 	};
 }
 

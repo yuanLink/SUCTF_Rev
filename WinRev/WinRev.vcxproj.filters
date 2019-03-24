@@ -48,6 +48,9 @@
     <ClInclude Include="DLLHeader.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalString.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -57,9 +60,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="RevProtect.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="UnitTestcpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="AEvent.cpp">

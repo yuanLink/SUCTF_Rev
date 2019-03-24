@@ -162,6 +162,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="DLLHeader.h" />
+    <ClInclude Include="GlobalString.h" />
     <ClInclude Include="LoadDLL.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="RevProtect.h" />
@@ -170,7 +171,12 @@
     <ClInclude Include="ThreadHeader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="aes.cpp" />
+    <ClCompile Include="aes.cpp">
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</InlineFunctionExpansion>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</FunctionLevelLinking>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Release|x64'">EnableFastChecks</BasicRuntimeChecks>
+    </ClCompile>
     <ClCompile Include="AEvent.cpp" />
     <ClCompile Include="LoadDLL.cpp" />
     <ClCompile Include="md5.cpp" />
@@ -181,7 +187,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="UnitTestcpp.cpp" />
     <ClCompile Include="WinRev.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
