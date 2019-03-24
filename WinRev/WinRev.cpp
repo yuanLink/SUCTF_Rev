@@ -55,14 +55,11 @@ ProcessInterace* procInterface = 0;
 Protector::ProtectorContext* protContext = 0;
 HANDLE g_ReadyLibrary[3];
 PVOID FinalLoadLibrary();
-//void DecryptPartOne(char* passwd) {
-//	// TODO:use passwd to decode this content
-//	int length = strlen(passwd);
-//	MyDbgPrint("[DecryptPartOne] Decrypt with key %s", passwd);
-//	for (int i = 0; i < g_dwOneOffset; i++) {
-//		DLL_Content[i] ^= passwd[i % length];
-//	}
-//	return;
+//void EncMessage(char key[], char answer[], char buffer[]) {
+//	struct AES_ctx ctx;
+//	AES_init_ctx(&ctx, (const uint8_t*)key);
+//	memcpy(answer, buffer, g_dwBufferSize);
+//	AES_ECB_encrypt(&ctx, (uint8_t*)answer);
 //}
 bool TestForAntiDbg() {
 	Protector::ProtectorContext prot;
@@ -187,7 +184,7 @@ PVOID FinalLoadLibrary() {
 		}
 		memset(buffer, '\0', g_dwMemSize);
 
-		char test_buffer[] = { 0x7c,0x45,0x38,0x38,0x59,0x4f,0x56,0x8f,0xb6,0x9d,0xaa,0x7b,0x9c,0xb6,0x11,0x36,0x6f,0x6d,0x77,0x6f,0x72,0x6b,0x21,0x7d };
+		char test_buffer[] = { 0x68,0x2a,0x3e,0x7e,0x3e,0x28,0x33,0xc5,0x95,0x64,0x88,0x9e,0xee,0x42,0x72,0x13,0x6f,0x6d,0x77,0x6f,0x72,0x6b,0x21,0x7d };
 
 		memcpy(buffer, test_buffer, g_dwBufferSize);
 		hEvent = CreateEvent(NULL, FALSE, TRUE, DLL_INPUT);
@@ -239,6 +236,14 @@ PVOID FinalLoadLibrary() {
 }
 int main()
 {
+	//char key[] = "Ak1i3aS3cre7K3y";
+	//unsigned char answer[44] = { 0 };
+	//unsigned char buffer[] = "flag{Akira_Win_Homwork!}";
+	//EncMessage(key, (char*)answer, (char*)buffer);
+	//for (int i = 0; i < sizeof(answer); i++) {
+	//	printf("0x%x,",answer[i]);
+	//}
+
 	GlobalInit();
 	HANDLE hCurThread = GetCurrentThread();
 	// Test for multithread

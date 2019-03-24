@@ -159,10 +159,7 @@ bool Protector::ProtectorContext::ProcessProtector() {
 				//printf("%ls\n", chSign);
 				// printf("=====[+]====== Get It =====[+]======\n");
 				// PrintRealMsg(szGet, GET_DEBUG_MSG);
-				// exit(-1);
-#ifdef _RELEASE
 				exit(-1);
-#endif
 				break;
 			}
 		}

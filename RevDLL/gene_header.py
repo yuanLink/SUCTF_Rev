@@ -1,6 +1,6 @@
 import os 
 print(os.path.dirname( __file__))
-fd = open(os.path.dirname( __file__) + "/../x64/Debug/RevDLL.dll",'rb')
+fd = open(os.path.dirname( __file__) + "/../x64/Release/RevDLL.dll",'rb')
 print(os.getcwd())
 content = fd.read()
 fd.close()

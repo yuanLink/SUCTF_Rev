@@ -18,7 +18,7 @@ bool AttachProcess() {
 	// we wait main thread to
 	HANDLE hEvent = OpenEvent(EVENT_ALL_ACCESS, TRUE, DLL_INPUT);
 	if (hEvent == NULL) {
-		printf("[Error] Create Event ERROR with ERROR Code %x\n", GetLastError());
+		// printf("[Error] Create Event ERROR with ERROR Code %x\n", GetLastError());
 		return false;
 	}
 	// set the event to main thread
@@ -26,12 +26,12 @@ bool AttachProcess() {
 	CloseHandle(hEvent);
 	HANDLE hSharemem = OpenFileMapping(FILE_MAP_ALL_ACCESS, NULL, SHARE_MEMORY);
 	if (hSharemem == NULL) {
-		printf("Create File failed with ERROR Code %x!\n", GetLastError());
+		// printf("Create File failed with ERROR Code %x!\n", GetLastError());
 		return false;
 	}
 	void* buffer = MapViewOfFile(hSharemem, FILE_MAP_READ, 0, 0, g_dwMemSize);
 	if (buffer == NULL) {
-		printf("Map failed with ERROR Code %x\n", GetLastError());
+		// printf("Map failed with ERROR Code %x\n", GetLastError());
 		CloseHandle(hSharemem);
 		return false;
 	}
@@ -41,9 +41,13 @@ bool AttachProcess() {
 	memcpy(ans_buffer, buffer, g_dwMemSize);
 	// now finish, we wait for main thread finish 
 	// here we use DES to decrypt the solution
-	char key[] = "Ak13aK3y";
+	char key[] = "Ak1i3aS3cre7K3y";
 	char answer[g_dwBufferSize+1] = { 0 };
 	DecMessage(key, answer, ans_buffer);
+	//for (int i = 0; i < sizeof(answer); i++) {
+	//	printf("0x%x,", (unsigned char)ans_buffer[i]);
+	//}
+	//printf("\n%s\n", answer);
 	if (!strcmp(answer, input)) {
 		printf("Get finally answer!\n");
 	}
