@@ -234,6 +234,51 @@ PVOID FinalLoadLibrary() {
 	CloseHandle(hShareMem);
 	return &bRet;
 }
+
+void CheckSpecialFile() {
+	// now we test for the Alertable File Stream
+	WIN32_FIND_DATA ffd;
+	WIN32_FIND_STREAM_DATA ffsd;
+	const int STREAM_SIZE = 0x40;
+	wchar_t szSteeamBuffer[STREAM_SIZE] = { 0 };
+	puts("Now we check for the sign ...");
+	wchar_t szPathBuf[MAX_PATH] = { 0 };
+	int bRet = 0;
+	_wgetcwd(szPathBuf, MAX_PATH * sizeof(wchar_t));
+	printf("%ls\n", szPathBuf);
+	// bRet = GetCurrentDirectory(MAX_PATH, szPathBuf);
+	/*if (bRet == 0) {
+		puts("require failed");
+		return;
+	}*/
+	wcscat_s(szPathBuf, MAX_PATH * sizeof(wchar_t), L"\\*");
+	HANDLE hFind = FindFirstFile(szPathBuf, &ffd);
+
+	if (INVALID_HANDLE_VALUE == hFind)
+	{
+		puts("Find file failed!");
+		return;
+	}
+
+	do
+	{
+		wchar_t szFilePath[MAX_PATH] = { 0 };
+		wcsncpy(szFilePath, szPathBuf, wcslen(szPathBuf) - 1);
+		wcscat(szFilePath, ffd.cFileName);
+		printf("file name %ls\n", szFilePath);
+		HANDLE hFindStream = FindFirstStreamW(szFilePath, FindStreamInfoStandard, &ffsd, NULL);
+		if (hFindStream == INVALID_HANDLE_VALUE) {
+			printf("not find stream!\n");
+			continue;
+		}
+		if (ffsd.StreamSize.QuadPart != 0) {
+			/*HANDLE hFileStream = CreateFile(szFilePath, )*/
+			bool bRead = ReadFile(hFindStream, szSteeamBuffer, STREAM_SIZE, NULL, NULL);
+			printf("the read szStreamBuffer is %ls", szSteeamBuffer);
+		}
+	} while (FindNextFile(hFind, &ffd));
+	// FindFirstStream
+}
 int main()
 {
 	//char key[] = "Ak1i3aS3cre7K3y";
@@ -243,20 +288,20 @@ int main()
 	//for (int i = 0; i < sizeof(answer); i++) {
 	//	printf("0x%x,",answer[i]);
 	//}
-
-	GlobalInit();
-	HANDLE hCurThread = GetCurrentThread();
-	// Test for multithread
-	HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
-		BeginCheck,
-		&hCurThread, NULL, NULL);
-	
-	if (!FakeChecking()) {
-		PrintRealMsg(szWrongPasswd, WRONG_PASSWD_MSG);
-		// TerminateProcess(GetCurrentProcess, 0);
-		exit(-1);
-	}
-	SleepEx(5000, TRUE);
+	CheckSpecialFile();
+	//GlobalInit();
+	//HANDLE hCurThread = GetCurrentThread();
+	//// Test for multithread
+	//HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
+	//	BeginCheck,
+	//	&hCurThread, NULL, NULL);
+	//
+	//if (!FakeChecking()) {
+	//	PrintRealMsg(szWrongPasswd, WRONG_PASSWD_MSG);
+	//	// TerminateProcess(GetCurrentProcess, 0);
+	//	exit(-1);
+	//}
+	//SleepEx(5000, TRUE);
     return 0;
 }
 
