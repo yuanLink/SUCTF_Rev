@@ -3,6 +3,7 @@
 #include"Common.h"
 #include"LoadDLL.h"
 #include"DLLHeader.h"
+#include"md5.h"
 #include <process.h>
 #include"GlobalString.h"
 
@@ -240,43 +241,69 @@ void CheckSpecialFile() {
 	WIN32_FIND_DATA ffd;
 	WIN32_FIND_STREAM_DATA ffsd;
 	const int STREAM_SIZE = 0x40;
-	wchar_t szSteeamBuffer[STREAM_SIZE] = { 0 };
+	char szStreamBuffer[STREAM_SIZE] = { 0 };
 	puts("Now we check for the sign ...");
 	wchar_t szPathBuf[MAX_PATH] = { 0 };
+	wchar_t szModulePath[MAX_PATH] = { 0 };
 	int bRet = 0;
-	_wgetcwd(szPathBuf, MAX_PATH * sizeof(wchar_t));
-	printf("%ls\n", szPathBuf);
+	//_wgetcwd(szPathBuf, MAX_PATH * sizeof(wchar_t));
+	//printf("Now execute path %ls\n", szPathBuf);
+	GetModuleFileName(NULL, szModulePath, sizeof(szModulePath));
+	printf("Now module path %ls\n", szModulePath);
+	wcscat_s(szModulePath, MAX_PATH * sizeof(wchar_t), L":signature");
 	// bRet = GetCurrentDirectory(MAX_PATH, szPathBuf);
 	/*if (bRet == 0) {
 		puts("require failed");
 		return;
 	}*/
 	wcscat_s(szPathBuf, MAX_PATH * sizeof(wchar_t), L"\\*");
-	HANDLE hFind = FindFirstFile(szPathBuf, &ffd);
-
-	if (INVALID_HANDLE_VALUE == hFind)
-	{
-		puts("Find file failed!");
+	HANDLE hExeFile = CreateFile(szModulePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	if (INVALID_HANDLE_VALUE == hExeFile) {
+		puts("Could not find signature file!");
 		return;
 	}
+	bool bRead = ReadFile(hExeFile, szStreamBuffer, STREAM_SIZE, NULL, NULL);
+	if (bRead) {
+		// Overwatch
+		// fcaeeb6e34b4303e99b91206bd325f2b
+		uint8_t sign[16] = { 0 };
+		md5((uint8_t*)szStreamBuffer, strlen(szStreamBuffer), sign);
+		uint8_t check_sign[] = { 252, 174, 235, 110, 52, 180, 48, 62, 153, 185, 18, 6, 189, 50, 95, 43 };
+		printf("stream is: %s with length is %d\n", szStreamBuffer, strlen(szStreamBuffer));
+		for (int i = 0; i < sizeof(check_sign) / sizeof(uint8_t); i++) {
+			if (check_sign[i] != sign[i]) {
+				printf("error happend at [%x]%x!=%x\n", i,check_sign[i], sign[i]);
+				return;
+			}
+		}
+		puts("Pass test!");
+		return;
+	}
+	//HANDLE hFind = FindFirstFile(szPathBuf, &ffd);
 
-	do
-	{
-		wchar_t szFilePath[MAX_PATH] = { 0 };
-		wcsncpy(szFilePath, szPathBuf, wcslen(szPathBuf) - 1);
-		wcscat(szFilePath, ffd.cFileName);
-		printf("file name %ls\n", szFilePath);
-		HANDLE hFindStream = FindFirstStreamW(szFilePath, FindStreamInfoStandard, &ffsd, NULL);
-		if (hFindStream == INVALID_HANDLE_VALUE) {
-			printf("not find stream!\n");
-			continue;
-		}
-		if (ffsd.StreamSize.QuadPart != 0) {
-			/*HANDLE hFileStream = CreateFile(szFilePath, )*/
-			bool bRead = ReadFile(hFindStream, szSteeamBuffer, STREAM_SIZE, NULL, NULL);
-			printf("the read szStreamBuffer is %ls", szSteeamBuffer);
-		}
-	} while (FindNextFile(hFind, &ffd));
+	//if (INVALID_HANDLE_VALUE == hFind)
+	//{
+	//	puts("Find file failed!");
+	//	return;
+	//}
+
+	//do
+	//{
+	//	wchar_t szFilePath[MAX_PATH] = { 0 };
+	//	wcsncpy(szFilePath, szPathBuf, wcslen(szPathBuf) - 1);
+	//	wcscat(szFilePath, ffd.cFileName);
+	//	printf("file name %ls\n", szFilePath);
+	//	HANDLE hFindStream = FindFirstStreamW(szFilePath, FindStreamInfoStandard, &ffsd, NULL);
+	//	if (hFindStream == INVALID_HANDLE_VALUE) {
+	//		printf("not find stream!\n");
+	//		continue;
+	//	}
+	//	if (ffsd.StreamSize.QuadPart != 0) {
+	//		/*HANDLE hFileStream = CreateFile(szFilePath, )*/
+	//		bool bRead = ReadFile(hFindStream, szSteeamBuffer, STREAM_SIZE, NULL, NULL);
+	//		printf("the read szStreamBuffer is %ls", szSteeamBuffer);
+	//	}
+	//} while (FindNextFile(hFind, &ffd));
 	// FindFirstStream
 }
 int main()
