@@ -238,18 +238,16 @@ PVOID FinalLoadLibrary() {
 
 void CheckSpecialFile() {
 	// now we test for the Alertable File Stream
-	WIN32_FIND_DATA ffd;
-	WIN32_FIND_STREAM_DATA ffsd;
 	const int STREAM_SIZE = 0x40;
 	char szStreamBuffer[STREAM_SIZE] = { 0 };
-	puts("Now we check for the sign ...");
+	// puts("Now we check for the sign ...");
 	wchar_t szPathBuf[MAX_PATH] = { 0 };
 	wchar_t szModulePath[MAX_PATH] = { 0 };
 	int bRet = 0;
 	//_wgetcwd(szPathBuf, MAX_PATH * sizeof(wchar_t));
 	//printf("Now execute path %ls\n", szPathBuf);
 	GetModuleFileName(NULL, szModulePath, sizeof(szModulePath));
-	printf("Now module path %ls\n", szModulePath);
+	// printf("Now module path %ls\n", szModulePath);
 	wcscat_s(szModulePath, MAX_PATH * sizeof(wchar_t), L":signature");
 	// bRet = GetCurrentDirectory(MAX_PATH, szPathBuf);
 	/*if (bRet == 0) {
@@ -259,7 +257,7 @@ void CheckSpecialFile() {
 	wcscat_s(szPathBuf, MAX_PATH * sizeof(wchar_t), L"\\*");
 	HANDLE hExeFile = CreateFile(szModulePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 	if (INVALID_HANDLE_VALUE == hExeFile) {
-		puts("Could not find signature file!");
+		// puts("Could not find signature file!");
 		return;
 	}
 	bool bRead = ReadFile(hExeFile, szStreamBuffer, STREAM_SIZE, NULL, NULL);
@@ -269,10 +267,10 @@ void CheckSpecialFile() {
 		uint8_t sign[16] = { 0 };
 		md5((uint8_t*)szStreamBuffer, strlen(szStreamBuffer), sign);
 		uint8_t check_sign[] = { 252, 174, 235, 110, 52, 180, 48, 62, 153, 185, 18, 6, 189, 50, 95, 43 };
-		printf("stream is: %s with length is %d\n", szStreamBuffer, strlen(szStreamBuffer));
+		// printf("stream is: %s with length is %d\n", szStreamBuffer, strlen(szStreamBuffer));
 		for (int i = 0; i < sizeof(check_sign) / sizeof(uint8_t); i++) {
 			if (check_sign[i] != sign[i]) {
-				printf("error happend at [%x]%x!=%x\n", i,check_sign[i], sign[i]);
+				// printf("error happend at [%x]%x!=%x\n", i,check_sign[i], sign[i]);
 				return;
 			}
 		}

@@ -28,7 +28,7 @@ for i in range(dll_length):
 	elif i % 3 == 1:
 		header_content[i] = str(int(header_content[i]) ^ magic).encode('utf-8')
 	else:
-		pass
+		header_content[i] = str(int(header_content[i-2]) ^ int(header_content[i-1]) ^ int(header_content[i])).encode('utf-8')
 # key_2 = 0xcc
 # fdor i in range(one_offset, two_offset):
 # 	header_content[i] = str(key_2 ^ int(header_content[i])).encode('utf-8')
