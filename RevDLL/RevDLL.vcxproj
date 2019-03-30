@@ -113,7 +113,7 @@
       </AdditionalOptions>
     </Link>
     <PostBuildEvent>
-      <Command>python $(ProjectDir)gene_header.py</Command>
+      <Command>python $(ProjectDir)gene_header.py $(LocalDebuggerCommand)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,7 +152,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>python $(ProjectDir)gene_header.py</Command>
+      <Command>python $(ProjectDir)gene_header.py $(LocalDebuggerCommand)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

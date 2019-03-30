@@ -1,7 +1,8 @@
 import os 
-print(os.path.dirname( __file__))
-fd = open(os.path.dirname( __file__) + "/../x64/Release/RevDLL.dll",'rb')
-print(os.getcwd())
+import sys
+
+print(sys.argv[1])
+fd = open(sys.argv[1],'rb')
 content = fd.read()
 fd.close()
 fd = open("../WinRev/DLLHeader.h",'wb')
