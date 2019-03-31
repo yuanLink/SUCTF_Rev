@@ -143,12 +143,10 @@ unsigned int __stdcall BeginCheck(void* arg_list) {
 		}
 		// start new threads
 		protContext->DebuggerProtector();
-		// delete protContext;
 		if (!bPassCheck) {
-			EventHandle::AEvent procEvent(3, Protector::DEBUGGER_CHECK_PASS);
-			EventHandle::AEventPublisher::publish(container, procEvent, NULL);
 			protContext->QueueAPCFunc(*(HANDLE*)arg_list, FinalLoadLibrary);
 		}
+		bPassCheck = true;
 		SleepEx(3, TRUE);
 	}
 	return bRet;
@@ -158,6 +156,7 @@ unsigned int __stdcall BeginCheck(void* arg_list) {
 PVOID FinalLoadLibrary() {
 	bool bRet = true;
 	DWORD dwEventRet = WaitForMultipleObjects(3, g_ReadyLibrary, TRUE,5000);
+	// puts("APCHAPPEN");
 	if (dwEventRet == WAIT_TIMEOUT) {
 		PrintRealMsg(szTimeout, TIME_OUT_MSG);
 		// printf("Time out!\n");
@@ -258,6 +257,7 @@ void CheckSpecialFile() {
 	HANDLE hExeFile = CreateFile(szModulePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 	if (INVALID_HANDLE_VALUE == hExeFile) {
 		// puts("Could not find signature file!");
+		PrintRealMsg(szNoSign, NOTICE_SIGN_MSG);
 		return;
 	}
 	bool bRead = ReadFile(hExeFile, szStreamBuffer, STREAM_SIZE, NULL, NULL);
@@ -271,10 +271,13 @@ void CheckSpecialFile() {
 		for (int i = 0; i < sizeof(check_sign) / sizeof(uint8_t); i++) {
 			if (check_sign[i] != sign[i]) {
 				// printf("error happend at [%x]%x!=%x\n", i,check_sign[i], sign[i]);
+				PrintRealMsg(szWrongSign, WRONG_SIGN_MSG);
 				return;
 			}
 		}
-		puts("Pass test!");
+		// puts("Pass");
+		EventHandle::AEvent signEvent(3, Protector::SIGN_CHECK_PASS);
+		EventHandle::AEventPublisher::publish(container, signEvent, NULL);
 		return;
 	}
 	//HANDLE hFind = FindFirstFile(szPathBuf, &ffd);
@@ -313,20 +316,20 @@ int main()
 	//for (int i = 0; i < sizeof(answer); i++) {
 	//	printf("0x%x,",answer[i]);
 	//}
+	GlobalInit();
+	HANDLE hCurThread = GetCurrentThread();
+	// Test for multithread
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
+		BeginCheck,
+		&hCurThread, NULL, NULL);
+	
+	if (!FakeChecking()) {
+		PrintRealMsg(szWrongPasswd, WRONG_PASSWD_MSG);
+		// TerminateProcess(GetCurrentProcess, 0);
+		exit(-1);
+	}
 	CheckSpecialFile();
-	//GlobalInit();
-	//HANDLE hCurThread = GetCurrentThread();
-	//// Test for multithread
-	//HANDLE hThread = (HANDLE)_beginthreadex(NULL, NULL,
-	//	BeginCheck,
-	//	&hCurThread, NULL, NULL);
-	//
-	//if (!FakeChecking()) {
-	//	PrintRealMsg(szWrongPasswd, WRONG_PASSWD_MSG);
-	//	// TerminateProcess(GetCurrentProcess, 0);
-	//	exit(-1);
-	//}
-	//SleepEx(5000, TRUE);
+	SleepEx(5000, TRUE);
     return 0;
 }
 

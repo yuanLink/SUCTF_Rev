@@ -243,10 +243,10 @@ bool Protector::ProtectorContext::QueueAPCFunc(HANDLE hThread, APCInsertFunc fun
 bool ProcessInterace::InitProcessCheckHandler() {
 	proCheckHandler = new Protector::ProcessCheckHandler(PROCESS_START, Protector::PROCESS_CHECK_PASS);
 	passCheckHandler = new Protector::PasswordCheckHandler(PASSWORD_CHECK, Protector::PASSWORD_CHECK_PASS);
-	dbgCheckHandler = new Protector::DebuggerCheckHandler(DEBUGER_CHECK, Protector::DEBUGGER_CHECK_PASS);
+	signCheckHandler = new Protector::SignCheckHandler(SIGN_CHECK, Protector::SIGN_CHECK_PASS);
 	int dwRet = EventHandle::AEventSubscriber::subscribe(container, proCheckHandler);
 	dwRet = EventHandle::AEventSubscriber::subscribe(container, passCheckHandler);
-	dwRet = EventHandle::AEventSubscriber::subscribe(container, dbgCheckHandler);
+	dwRet = EventHandle::AEventSubscriber::subscribe(container, signCheckHandler);
 	
 	return dwRet >= 0;
 }

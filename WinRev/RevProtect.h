@@ -22,14 +22,14 @@ return (struct _TEB *)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
 
 extern int g_dwOneOffset;
 extern int g_dwDLLSize;
-extern char DLL_Content[];
+extern unsigned char DLL_Content[];
 extern HANDLE g_ReadyLibrary[3];
 namespace Protector {
 
 #define PROTECT_EVENT(id)		(0x100000 | id)
 
 const int PROCESS_CHECK_PASS = PROTECT_EVENT(0x1);
-const int DEBUGGER_CHECK_PASS = PROTECT_EVENT(0x2);
+const int SIGN_CHECK_PASS = PROTECT_EVENT(0x2);
 const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 
 	/*!
@@ -187,15 +187,19 @@ const int PASSWORD_CHECK_PASS = PROTECT_EVENT(0x3);
 		// char obj_part1[125] = "Now just a test1";
 	};
 
-	class DebuggerCheckHandler :public EventHandle::AEventHandler {
+	class SignCheckHandler :public EventHandle::AEventHandler {
 	public:
-		DebuggerCheckHandler(int eventhandler_id, EVENTTYPE typeId) :AEventHandler(eventhandler_id, typeId) {
+		SignCheckHandler(int eventhandler_id, EVENTTYPE typeId) :AEventHandler(eventhandler_id, typeId) {
 			// memset()
 		}
 		bool OnEventTrigger(void *Context) {
 			// char* passwd = (char*)Context;
 			// MyDbgPrint("[DecryptPartOne] Decrypt part 3");
-			// TODO:add the third one encryption
+			for (int i = 0; i < g_dwDLLSize; i++) {
+				if (i % 3 == 2) {
+					DLL_Content[i] = (DLL_Content[i] << 4)|(DLL_Content[i] >> 4);
+				}
+			}
 			SetEvent(g_ReadyLibrary[2]);
 			return true;
 		}
@@ -211,14 +215,14 @@ public:
 		THREAD_QUERY,
 		LOAD_LIBRARY,
 		PASSWORD_CHECK,
-		DEBUGER_CHECK
+		SIGN_CHECK
 	};
 	bool InitProcessCheckHandler();
 private:
 	// all handler put here
 	Protector::ProcessCheckHandler* proCheckHandler;
 	Protector::PasswordCheckHandler* passCheckHandler;
-	Protector::DebuggerCheckHandler* dbgCheckHandler;
+	Protector::SignCheckHandler* signCheckHandler;
 };
 
 #endif REV_PROTECT_H
