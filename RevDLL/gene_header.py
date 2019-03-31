@@ -6,7 +6,7 @@ fd = open(sys.argv[1],'rb')
 content = fd.read()
 fd.close()
 fd = open("../WinRev/DLLHeader.h",'wb')
-header_announce = b'char DLL_Content[] = {'
+header_announce = b'unsigned char DLL_Content[] = {'
 header_content = []
 for each in content:
 	header_content.append(str(each).encode('utf-8'))
@@ -28,7 +28,7 @@ for i in range(dll_length):
 	elif i % 3 == 1:
 		header_content[i] = str(int(header_content[i]) ^ magic).encode('utf-8')
 	else:
-		header_content[i] = str(int(header_content[i-2]) ^ int(header_content[i-1]) ^ int(header_content[i])).encode('utf-8')
+		header_content[i] = str((int(header_content[i]) >> 4) | ((int(header_content[i]) << 4) & 0xffffffff)).encode('utf-8')
 # key_2 = 0xcc
 # fdor i in range(one_offset, two_offset):
 # 	header_content[i] = str(key_2 ^ int(header_content[i])).encode('utf-8')
