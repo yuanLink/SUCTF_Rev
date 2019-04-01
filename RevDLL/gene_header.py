@@ -9,7 +9,10 @@ fd = open("../WinRev/DLLHeader.h",'wb')
 header_announce = b'unsigned char DLL_Content[] = {'
 header_content = []
 for each in content:
-	header_content.append(str(each).encode('utf-8'))
+	if sys.version > '3':
+		header_content.append(str(each).encode('utf-8'))
+	else:
+		header_content.append(ord(each))
 dll_length = len(header_content)
 key_1 = "Akira_aut0_ch3ss_!"
 one_offset = dll_length // 3
@@ -24,17 +27,29 @@ magic = 0x33 ^ 0x6a
 for i in range(dll_length):
 	# print(header_content[i])
 	if i % 3 == 0:
-		header_content[i] = str(ord(key_1[(i//3)%len(key_1)]) ^ int(header_content[i])).encode('utf-8')
+		if sys.version > '3':
+			header_content[i] = str(ord(key_1[(i//3)%len(key_1)]) ^ int(header_content[i])).encode('utf-8')
+		else:
+			header_content[i] = ord(key_1[(i//3)%len(key_1)]) ^ int(header_content[i])
 	elif i % 3 == 1:
-		header_content[i] = str(int(header_content[i]) ^ magic).encode('utf-8')
+		if sys.version > '3':
+			header_content[i] = str(int(header_content[i]) ^ magic).encode('utf-8')
+		else:
+			header_content[i] = int(header_content[i]) ^ magic
 	else:
-		header_content[i] = str((int(header_content[i]) >> 4) | ((int(header_content[i]) << 4) & 0xffffffff)).encode('utf-8')
+		if sys.version > '3':
+			header_content[i] = str((int(header_content[i]) >> 4) | ((int(header_content[i]) << 4) & 0xffffffff)).encode('utf-8')
+		else:
+			header_content[i] = (int(header_content[i]) >> 4) | ((int(header_content[i]) << 4) & 0xffffffff)
 # key_2 = 0xcc
 # fdor i in range(one_offset, two_offset):
 # 	header_content[i] = str(key_2 ^ int(header_content[i])).encode('utf-8')
 print("This dll length is 0x%x"%dll_length)
 print("One offset is 0x%x"%one_offset)
-header_full = header_announce + b','.join(header_content) + b"};\n"
+if sys.version < '3':
+	header_full = header_announce + b','.join([str(i) for i in header_content]) + b"};\n"
+else:
+	header_full = header_announce + b','.join(header_content) + b"};\n"
 fd.write(header_full)
 dll_length_cont = b"int g_dwDLLSize = " + str(dll_length).encode("utf-8") + b';\n'
 fd.write(dll_length_cont)
