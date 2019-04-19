@@ -3,9 +3,9 @@ Obfus proc
 	call fake1
 fake1:
 	pop rax
-	; mov p,eax // TODO:add a offset variable to check
+	; mov p_stack,eax // TODO:add a offset variable to check
 	call true1
-	db 0xEA
+	db 0eah
 	jmp fake2
 true1:
 	pop rbx
